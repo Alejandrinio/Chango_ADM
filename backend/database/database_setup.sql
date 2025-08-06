@@ -1,5 +1,6 @@
 -- =====================================================
 -- SCRIPT DE CONFIGURACIÓN DE BASE DE DATOS - MVP EMPRESA
+-- VERSIÓN CORREGIDA PARA COMPATIBILIDAD
 -- =====================================================
 
 -- Crear la base de datos
@@ -23,7 +24,7 @@ CREATE TABLE empleados (
     horario_laboral VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE,
     telefono VARCHAR(20),
-    fecha_ingreso DATE DEFAULT CURRENT_DATE,
+    fecha_ingreso DATE,
     estado ENUM('activo', 'inactivo', 'vacaciones', 'licencia') DEFAULT 'activo',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -93,7 +94,7 @@ CREATE TABLE recibos_sueldo (
     bonificaciones DECIMAL(10,2) DEFAULT 0,
     descuentos DECIMAL(10,2) DEFAULT 0,
     sueldo_neto DECIMAL(10,2) NOT NULL,
-    fecha_generacion DATE DEFAULT CURRENT_DATE,
+    fecha_generacion DATE,
     fecha_firma_empleado DATE NULL,
     fecha_aprobacion_supervisor DATE NULL,
     estado ENUM('generado', 'firmado', 'aprobado', 'pagado') DEFAULT 'generado',
