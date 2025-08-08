@@ -8,6 +8,7 @@ mysql-connector-python
 python-jose
 passlib
 python-multipart
+PyJWT
 
 # Utilidades básicas
 python-dotenv
