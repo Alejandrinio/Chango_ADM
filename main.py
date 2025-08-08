@@ -5,24 +5,16 @@ Chango_ADM - Backend API
 MVP Sistema de Gestión de Empleados con FastAPI
 """
 
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import uvicorn
-from datetime import datetime, timedelta
+from datetime import datetime
 
-# Importar módulos del proyecto
-from database.connection import get_db
-from models.empleado import Empleado, EmpleadoCreate, EmpleadoUpdate
-from models.usuario import Usuario, UsuarioCreate, UsuarioLogin
-from models.fichaje import Fichaje, FichajeCreate
-from models.recibo import ReciboSueldo, ReciboCreate
-from services.auth_service import AuthService
-from services.empleado_service import EmpleadoService
-from services.fichaje_service import FichajeService
-from services.recibo_service import ReciboService
+# Importar solo lo que existe
+from backend.database.connection import get_db
+from backend.middleware.cors import setup_cors
 
 # Configuración de la aplicación
 app = FastAPI(
@@ -34,191 +26,10 @@ app = FastAPI(
 )
 
 # Configurar CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # En producción, especificar dominios
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Servicios
-auth_service = AuthService()
-empleado_service = EmpleadoService()
-fichaje_service = FichajeService()
-recibo_service = ReciboService()
+setup_cors(app)
 
 # =====================================================
-# ENDPOINTS DE AUTENTICACIÓN
-# =====================================================
-
-@app.post("/auth/login", response_model=dict)
-async def login(credentials: UsuarioLogin, db: Session = Depends(get_db)):
-    """Login de usuario"""
-    try:
-        token = auth_service.authenticate_user(db, credentials.username, credentials.password)
-        return {
-            "access_token": token,
-            "token_type": "bearer",
-            "message": "Login exitoso"
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciales inválidas"
-        )
-
-@app.post("/auth/register", response_model=dict)
-async def register(user: UsuarioCreate, db: Session = Depends(get_db)):
-    """Registro de nuevo usuario"""
-    try:
-        new_user = auth_service.create_user(db, user)
-        return {
-            "message": "Usuario creado exitosamente",
-            "user_id": new_user.id
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-
-# =====================================================
-# ENDPOINTS DE EMPLEADOS
-# =====================================================
-
-@app.get("/empleados", response_model=List[Empleado])
-async def get_empleados(
-    skip: int = 0, 
-    limit: int = 100, 
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Obtener lista de empleados"""
-    empleados = empleado_service.get_empleados(db, skip=skip, limit=limit)
-    return empleados
-
-@app.get("/empleados/{empleado_id}", response_model=Empleado)
-async def get_empleado(
-    empleado_id: int, 
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Obtener empleado por ID"""
-    empleado = empleado_service.get_empleado(db, empleado_id)
-    if not empleado:
-        raise HTTPException(status_code=404, detail="Empleado no encontrado")
-    return empleado
-
-@app.post("/empleados", response_model=Empleado)
-async def create_empleado(
-    empleado: EmpleadoCreate, 
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Crear nuevo empleado"""
-    return empleado_service.create_empleado(db, empleado)
-
-@app.put("/empleados/{empleado_id}", response_model=Empleado)
-async def update_empleado(
-    empleado_id: int, 
-    empleado: EmpleadoUpdate, 
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Actualizar empleado"""
-    updated_empleado = empleado_service.update_empleado(db, empleado_id, empleado)
-    if not updated_empleado:
-        raise HTTPException(status_code=404, detail="Empleado no encontrado")
-    return updated_empleado
-
-# =====================================================
-# ENDPOINTS DE FICHAJES (TAW)
-# =====================================================
-
-@app.post("/fichajes/entrada", response_model=Fichaje)
-async def registrar_entrada(
-    fichaje: FichajeCreate, 
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Registrar entrada de empleado"""
-    return fichaje_service.registrar_entrada(db, fichaje)
-
-@app.post("/fichajes/salida", response_model=Fichaje)
-async def registrar_salida(
-    fichaje: FichajeCreate, 
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Registrar salida de empleado"""
-    return fichaje_service.registrar_salida(db, fichaje)
-
-@app.get("/fichajes/empleado/{empleado_id}")
-async def get_fichajes_empleado(
-    empleado_id: int,
-    fecha_inicio: Optional[str] = None,
-    fecha_fin: Optional[str] = None,
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Obtener fichajes de un empleado"""
-    return fichaje_service.get_fichajes_empleado(db, empleado_id, fecha_inicio, fecha_fin)
-
-# =====================================================
-# ENDPOINTS DE RECIBOS DE SUELDO
-# =====================================================
-
-@app.get("/recibos/empleado/{empleado_id}")
-async def get_recibos_empleado(
-    empleado_id: int,
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Obtener recibos de sueldo de un empleado"""
-    return recibo_service.get_recibos_empleado(db, empleado_id)
-
-@app.post("/recibos/generar", response_model=ReciboSueldo)
-async def generar_recibo(
-    recibo: ReciboCreate, 
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Generar recibo de sueldo"""
-    return recibo_service.generar_recibo(db, recibo)
-
-@app.post("/recibos/{recibo_id}/firmar")
-async def firmar_recibo(
-    recibo_id: int,
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Firmar recibo de sueldo"""
-    return recibo_service.firmar_recibo(db, recibo_id, current_user.id)
-
-# =====================================================
-# ENDPOINTS DE ESTADÍSTICAS
-# =====================================================
-
-@app.get("/stats/empleados")
-async def get_stats_empleados(
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Obtener estadísticas de empleados"""
-    return empleado_service.get_stats(db)
-
-@app.get("/stats/fichajes")
-async def get_stats_fichajes(
-    fecha: Optional[str] = None,
-    db: Session = Depends(get_db),
-    current_user: Usuario = Depends(auth_service.get_current_user)
-):
-    """Obtener estadísticas de fichajes"""
-    return fichaje_service.get_stats(db, fecha)
-
-# =====================================================
-# ENDPOINTS DE SALUD
+# ENDPOINTS BÁSICOS
 # =====================================================
 
 @app.get("/health")
@@ -236,8 +47,161 @@ async def root():
     return {
         "message": "Chango_ADM API - Sistema de Gestión de Empleados",
         "version": "1.0.0",
-        "docs": "/docs"
+        "docs": "/docs",
+        "status": "✅ Servidor funcionando correctamente"
     }
+
+@app.get("/test-db")
+async def test_database(db: Session = Depends(get_db)):
+    """Probar conexión a la base de datos"""
+    try:
+        from sqlalchemy import text
+        result = db.execute(text("SELECT COUNT(*) FROM empleados"))
+        count = result.scalar()
+        return {
+            "status": "success",
+            "message": "Conexión a base de datos exitosa",
+            "empleados_count": count
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error de base de datos: {str(e)}"
+        )
+
+@app.get("/empleados-real")
+async def get_empleados_real(db: Session = Depends(get_db)):
+    """Obtener datos reales de empleados de la base de datos"""
+    try:
+        from sqlalchemy import text
+        # Obtener los primeros 5 empleados con sus datos reales
+        result = db.execute(text("""
+            SELECT id, nombre, apellido, rol, horario_laboral, estado 
+            FROM empleados 
+            LIMIT 5
+        """))
+        empleados = []
+        for row in result:
+            empleados.append({
+                "id": row[0],
+                "nombre": row[1],
+                "apellido": row[2],
+                "rol": row[3],
+                "horario_laboral": row[4],
+                "estado": row[5]
+            })
+        
+        # También obtener estadísticas
+        count_result = db.execute(text("SELECT COUNT(*) FROM empleados"))
+        total_count = count_result.scalar()
+        
+        return {
+            "status": "success",
+            "message": "Datos reales de la base de datos",
+            "total_empleados": total_count,
+            "muestra_empleados": empleados,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error de base de datos: {str(e)}"
+        )
+
+@app.get("/empleados-todos")
+async def get_empleados_todos(
+    limit: int = 20, 
+    offset: int = 0, 
+    db: Session = Depends(get_db)
+):
+    """Obtener todos los empleados con paginación"""
+    try:
+        from sqlalchemy import text
+        # Obtener empleados con paginación
+        result = db.execute(text("""
+            SELECT id, nombre, apellido, rol, horario_laboral, estado, email, telefono
+            FROM empleados 
+            ORDER BY id
+            LIMIT :limit OFFSET :offset
+        """), {"limit": limit, "offset": offset})
+        
+        empleados = []
+        for row in result:
+            empleados.append({
+                "id": row[0],
+                "nombre": row[1],
+                "apellido": row[2],
+                "rol": row[3],
+                "horario_laboral": row[4],
+                "estado": row[5],
+                "email": row[6],
+                "telefono": row[7]
+            })
+        
+        # Obtener total
+        count_result = db.execute(text("SELECT COUNT(*) FROM empleados"))
+        total_count = count_result.scalar()
+        
+        return {
+            "status": "success",
+            "message": f"Empleados {offset+1} a {offset+len(empleados)} de {total_count}",
+            "total_empleados": total_count,
+            "pagina_actual": offset // limit + 1,
+            "empleados_por_pagina": limit,
+            "empleados": empleados,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error de base de datos: {str(e)}"
+        )
+
+@app.get("/empleados/{empleado_id}")
+async def get_empleado_por_id(empleado_id: int, db: Session = Depends(get_db)):
+    """Obtener un empleado específico por ID"""
+    try:
+        from sqlalchemy import text
+        result = db.execute(text("""
+            SELECT id, nombre, apellido, rol, horario_laboral, estado, 
+                   email, telefono, domicilio, fecha_nacimiento, nivel_estudio
+            FROM empleados 
+            WHERE id = :empleado_id
+        """), {"empleado_id": empleado_id})
+        
+        row = result.fetchone()
+        if not row:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Empleado con ID {empleado_id} no encontrado"
+            )
+        
+        empleado = {
+            "id": row[0],
+            "nombre": row[1],
+            "apellido": row[2],
+            "rol": row[3],
+            "horario_laboral": row[4],
+            "estado": row[5],
+            "email": row[6],
+            "telefono": row[7],
+            "domicilio": row[8],
+            "fecha_nacimiento": str(row[9]) if row[9] else None,
+            "nivel_estudio": row[10]
+        }
+        
+        return {
+            "status": "success",
+            "empleado": empleado,
+            "timestamp": datetime.now().isoformat()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error de base de datos: {str(e)}"
+        )
 
 # =====================================================
 # CONFIGURACIÓN DE EJECUCIÓN
@@ -251,3 +215,176 @@ if __name__ == "__main__":
         reload=True,
         log_level="info"
     ) 
+
+@app.get("/api/empleados")
+async def api_get_empleados(
+    page: int = 1, 
+    limit: int = 10, 
+    search: str = None,
+    db: Session = Depends(get_db)
+):
+    """API endpoint para el frontend - Lista de empleados con paginación y búsqueda"""
+    try:
+        from sqlalchemy import text
+        
+        offset = (page - 1) * limit
+        
+        # Construir query con búsqueda opcional
+        if search:
+            query = """
+                SELECT id, nombre, apellido, rol, horario_laboral, estado, email, telefono
+                FROM empleados 
+                WHERE nombre LIKE :search OR apellido LIKE :search OR rol LIKE :search
+                ORDER BY id
+                LIMIT :limit OFFSET :offset
+            """
+            params = {"search": f"%{search}%", "limit": limit, "offset": offset}
+        else:
+            query = """
+                SELECT id, nombre, apellido, rol, horario_laboral, estado, email, telefono
+                FROM empleados 
+                ORDER BY id
+                LIMIT :limit OFFSET :offset
+            """
+            params = {"limit": limit, "offset": offset}
+        
+        result = db.execute(text(query), params)
+        
+        empleados = []
+        for row in result:
+            empleados.append({
+                "id": row[0],
+                "nombre": row[1],
+                "apellido": row[2],
+                "rol": row[3],
+                "horario_laboral": row[4],
+                "estado": row[5],
+                "email": row[6],
+                "telefono": row[7]
+            })
+        
+        # Obtener total
+        if search:
+            count_query = """
+                SELECT COUNT(*) FROM empleados 
+                WHERE nombre LIKE :search OR apellido LIKE :search OR rol LIKE :search
+            """
+            count_params = {"search": f"%{search}%"}
+        else:
+            count_query = "SELECT COUNT(*) FROM empleados"
+            count_params = {}
+            
+        count_result = db.execute(text(count_query), count_params)
+        total_count = count_result.scalar()
+        
+        return {
+            "success": True,
+            "data": empleados,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total_count,
+                "pages": (total_count + limit - 1) // limit
+            },
+            "search": search
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "data": []
+        }
+
+@app.get("/api/empleados/{empleado_id}")
+async def api_get_empleado(empleado_id: int, db: Session = Depends(get_db)):
+    """API endpoint para el frontend - Obtener empleado por ID"""
+    try:
+        from sqlalchemy import text
+        result = db.execute(text("""
+            SELECT id, nombre, apellido, rol, horario_laboral, estado, 
+                   email, telefono, domicilio, fecha_nacimiento, nivel_estudio
+            FROM empleados 
+            WHERE id = :empleado_id
+        """), {"empleado_id": empleado_id})
+        
+        row = result.fetchone()
+        if not row:
+            return {
+                "success": False,
+                "error": f"Empleado con ID {empleado_id} no encontrado"
+            }
+        
+        empleado = {
+            "id": row[0],
+            "nombre": row[1],
+            "apellido": row[2],
+            "rol": row[3],
+            "horario_laboral": row[4],
+            "estado": row[5],
+            "email": row[6],
+            "telefono": row[7],
+            "domicilio": row[8],
+            "fecha_nacimiento": str(row[9]) if row[9] else None,
+            "nivel_estudio": row[10]
+        }
+        
+        return {
+            "success": True,
+            "data": empleado
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/stats")
+async def api_get_stats(db: Session = Depends(get_db)):
+    """API endpoint para el frontend - Estadísticas generales"""
+    try:
+        from sqlalchemy import text
+        
+        # Estadísticas de empleados
+        stats_result = db.execute(text("""
+            SELECT 
+                COUNT(*) as total,
+                COUNT(CASE WHEN estado = 'activo' THEN 1 END) as activos,
+                COUNT(CASE WHEN estado = 'inactivo' THEN 1 END) as inactivos,
+                COUNT(CASE WHEN estado = 'vacaciones' THEN 1 END) as vacaciones
+            FROM empleados
+        """))
+        
+        stats_row = stats_result.fetchone()
+        
+        # Estadísticas por rol
+        roles_result = db.execute(text("""
+            SELECT rol, COUNT(*) as cantidad
+            FROM empleados 
+            GROUP BY rol 
+            ORDER BY cantidad DESC
+        """))
+        
+        roles_stats = []
+        for row in roles_result:
+            roles_stats.append({
+                "rol": row[0],
+                "cantidad": row[1]
+            })
+        
+        return {
+            "success": True,
+            "data": {
+                "empleados": {
+                    "total": stats_row[0],
+                    "activos": stats_row[1],
+                    "inactivos": stats_row[2],
+                    "vacaciones": stats_row[3]
+                },
+                "roles": roles_stats
+            }
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        } 
