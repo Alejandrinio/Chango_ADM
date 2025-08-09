@@ -73,36 +73,7 @@
 
         <!-- Sidebar -->
         <aside class="left-sidebar" data-sidebarbg="skin5">
-            <div class="scroll-sidebar">
-                <nav class="sidebar-nav">
-                    <ul id="sidebarnav" class="p-t-10">
-                        <li class="sidebar-item">
-                            <a class="sidebar-link waves-effect waves-dark sidebar-link" href="index.html" aria-expanded="false">
-                                <i class="mdi mdi-view-dashboard"></i>
-                                <span class="hide-menu">Dashboard</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a class="sidebar-link waves-effect waves-dark sidebar-link" href="empleados.html" aria-expanded="false">
-                                <i class="mdi mdi-account-multiple"></i>
-                                <span class="hide-menu">Empleados</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a class="sidebar-link waves-effect waves-dark sidebar-link" href="tables.html" aria-expanded="false">
-                                <i class="mdi mdi-table"></i>
-                                <span class="hide-menu">Tablas</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a class="sidebar-link waves-effect waves-dark sidebar-link" href="charts.html" aria-expanded="false">
-                                <i class="mdi mdi-chart-bar"></i>
-                                <span class="hide-menu">Gráficos</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
+            <div class="scroll-sidebar" id="sidebar-root"></div>
         </aside>
 
         <!-- Page wrapper -->
@@ -320,6 +291,25 @@
             // Show loading message
             $('#empleados-table-body').html('<tr><td colspan="8" class="text-center">Cargando empleados...</td></tr>');
         });
+    </script>
+    <!-- Load unified sidebar -->
+    <script>
+      fetch('partials/sidebar.html', { cache: 'no-store' })
+        .then(r => r.text())
+        .then(html => {
+          const root = document.getElementById('sidebar-root');
+          if (root) {
+            root.innerHTML = html;
+            const page = (location.pathname.split('/').pop() || 'index.html');
+            root.querySelectorAll('#sidebarnav a').forEach(a => {
+              if (a.getAttribute('href') === page) {
+                a.classList.add('active');
+                if (a.parentElement) a.parentElement.classList.add('selected');
+              }
+            });
+          }
+        })
+        .catch(console.error);
     </script>
 </body>
 
