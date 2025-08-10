@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Frontend-Backend - Chango_ADM</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading { background-color: #fff3cd; border-color: #ffeaa7; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Frontend-Backend - Chango_ADM</h1>
+    
+    <div class="test-section">
+        <h3>🔗 Conexión Backend</h3>
+        <button onclick="testBackendConnection()">Probar Conexión</button>
+        <div id="backend-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Endpoint /api/stats</h3>
+        <button onclick="testStats()">Probar Stats</button>
+        <div id="stats-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>👥 Endpoint /api/empleados</h3>
+        <button onclick="testEmpleados()">Probar Empleados</button>
+        <div id="empleados-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📈 Endpoint /api/dashboard/kpis</h3>
+        <button onclick="testDashboardKPIs()">Probar Dashboard KPIs</button>
+        <div id="dashboard-kpis-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Endpoint /api/dashboard/charts</h3>
+        <button onclick="testDashboardCharts()">Probar Dashboard Charts</button>
+        <div id="dashboard-charts-result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+
+        async function fetchApi(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.className = `test-section ${isError ? 'error' : 'success'}`;
+            element.innerHTML = `
+                <h4>${isError ? '❌ Error' : '✅ Éxito'}</h4>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        }
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.className = 'test-section loading';
+            element.innerHTML = '<h4>⏳ Cargando...</h4>';
+        }
+
+        async function testBackendConnection() {
+            showLoading('backend-result');
+            try {
+                const result = await fetchApi('/test-db');
+                showResult('backend-result', result);
+            } catch (error) {
+                showResult('backend-result', { error: error.message }, true);
+            }
+        }
+
+        async function testStats() {
+            showLoading('stats-result');
+            try {
+                const result = await fetchApi('/stats');
+                showResult('stats-result', result);
+            } catch (error) {
+                showResult('stats-result', { error: error.message }, true);
+            }
+        }
+
+        async function testEmpleados() {
+            showLoading('empleados-result');
+            try {
+                const result = await fetchApi('/empleados?page=1&size=3');
+                showResult('empleados-result', result);
+            } catch (error) {
+                showResult('empleados-result', { error: error.message }, true);
+            }
+        }
+
+        async function testDashboardKPIs() {
+            showLoading('dashboard-kpis-result');
+            try {
+                const result = await fetchApi('/dashboard/kpis');
+                showResult('dashboard-kpis-result', result);
+            } catch (error) {
+                showResult('dashboard-kpis-result', { error: error.message }, true);
+            }
+        }
+
+        async function testDashboardCharts() {
+            showLoading('dashboard-charts-result');
+            try {
+                const result = await fetchApi('/dashboard/charts');
+                showResult('dashboard-charts-result', result);
+            } catch (error) {
+                showResult('dashboard-charts-result', { error: error.message }, true);
+            }
+        }
+
+        // Auto-test on load
+        window.onload = function() {
+            console.log('🧪 Iniciando tests automáticos...');
+            setTimeout(testBackendConnection, 1000);
+            setTimeout(testStats, 2000);
+            setTimeout(testEmpleados, 3000);
+            setTimeout(testDashboardKPIs, 4000);
+            setTimeout(testDashboardCharts, 5000);
+        };
+    </script>
+</body>
+</html>

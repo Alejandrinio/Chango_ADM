@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Test - Chango_ADM</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .kpi-card { 
+            background: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 10px; 
+            text-align: center;
+            display: inline-block;
+            min-width: 150px;
+        }
+        .chart-container { 
+            border: 1px solid #dee2e6; 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin: 20px 0; 
+            height: 400px;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Dashboard Test - Chango_ADM</h1>
+    
+    <div id="status"></div>
+    
+    <h2>📊 KPIs</h2>
+    <div id="kpis">
+        <div class="kpi-card">
+            <h3 id="kpi-empleados-activos">-</h3>
+            <p>Empleados Activos</p>
+        </div>
+        <div class="kpi-card">
+            <h3 id="kpi-ausencias-hoy">-</h3>
+            <p>Ausencias Hoy</p>
+        </div>
+        <div class="kpi-card">
+            <h3 id="kpi-horas-extras">-</h3>
+            <p>Horas Extras Mes</p>
+        </div>
+        <div class="kpi-card">
+            <h3 id="kpi-recibos-pendientes">-</h3>
+            <p>Recibos Pendientes</p>
+        </div>
+    </div>
+    
+    <h2>📈 Charts</h2>
+    
+    <div class="chart-container">
+        <h3>Distribución por Roles</h3>
+        <canvas id="roles-chart" width="400" height="300"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <h3>Asistencia Semanal</h3>
+        <canvas id="asistencia-chart" width="400" height="300"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <h3>Horas Extras por Área</h3>
+        <canvas id="horas-extras-chart" width="400" height="300"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/dashboard-simple.js"></script>
+    
+    <script>
+        // Status updates
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.innerHTML = `<p class="${type}">${message}</p>`;
+        }
+        
+        // Test Chart.js availability
+        if (typeof Chart !== 'undefined') {
+            updateStatus('✅ Chart.js cargado correctamente', 'success');
+        } else {
+            updateStatus('❌ Chart.js no está disponible', 'error');
+        }
+    </script>
+</body>
+</html>

@@ -32,7 +32,7 @@ class ApiService {
 
     // Get employees with pagination and search
     async getEmpleados(page = 1, limit = 10, search = null) {
-        let endpoint = `/empleados?page=${page}&limit=${limit}`;
+        let endpoint = `/empleados?page=${page}&size=${limit}`;
         if (search) {
             endpoint += `&search=${encodeURIComponent(search)}`;
         }
@@ -73,8 +73,8 @@ class EmpleadosUI {
             const result = await this.api.getEmpleados(this.currentPage, this.currentLimit, this.currentSearch);
             
             if (result.success) {
-                this.renderEmpleadosTable(result.data);
-                this.renderPagination(result.pagination);
+                this.renderEmpleadosTable(result.data.empleados);
+                this.renderPagination(result.data.pagination);
             } else {
                 this.showError('Error al cargar empleados: ' + result.error);
             }
@@ -296,13 +296,13 @@ class EmpleadosUI {
         const inactivosElement = document.getElementById('empleados-inactivos');
         const vacacionesElement = document.getElementById('empleados-vacaciones');
 
-        if (totalElement) totalElement.textContent = stats.empleados.total;
-        if (activosElement) activosElement.textContent = stats.empleados.activos;
-        if (inactivosElement) inactivosElement.textContent = stats.empleados.inactivos;
-        if (vacacionesElement) vacacionesElement.textContent = stats.empleados.vacaciones;
+        if (totalElement) totalElement.textContent = stats.total_empleados || 0;
+        if (activosElement) activosElement.textContent = stats.empleados_activos || 0;
+        if (inactivosElement) inactivosElement.textContent = (stats.total_empleados - stats.empleados_activos) || 0;
+        if (vacacionesElement) vacacionesElement.textContent = 0; // No tenemos este dato específico
 
         // Render roles chart if exists
-        this.renderRolesChart(stats.roles);
+        // this.renderRolesChart(stats.roles); // Comentado porque no tenemos roles en stats
     }
 
     // Render roles chart

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple - Chango_ADM</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .kpi { background: #f0f0f0; padding: 10px; margin: 5px; display: inline-block; }
+        .chart { border: 1px solid #ccc; margin: 20px 0; height: 300px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Simple - Chango_ADM</h1>
+    
+    <div id="status">Cargando...</div>
+    
+    <h2>📊 KPIs</h2>
+    <div>
+        <div class="kpi">Empleados Activos: <span id="kpi-empleados-activos">-</span></div>
+        <div class="kpi">Ausencias Hoy: <span id="kpi-ausencias-hoy">-</span></div>
+        <div class="kpi">Horas Extras: <span id="kpi-horas-extras">-</span></div>
+        <div class="kpi">Recibos Pendientes: <span id="kpi-recibos-pendientes">-</span></div>
+    </div>
+    
+    <h2>📈 Charts</h2>
+    <div class="chart">
+        <h3>Distribución por Roles</h3>
+        <canvas id="roles-chart"></canvas>
+    </div>
+    
+    <div class="chart">
+        <h3>Asistencia Semanal</h3>
+        <canvas id="asistencia-chart"></canvas>
+    </div>
+    
+    <div class="chart">
+        <h3>Horas Extras por Área</h3>
+        <canvas id="horas-extras-chart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        console.log('🚀 Test Simple iniciado');
+        
+        // Verificar Chart.js
+        if (typeof Chart !== 'undefined') {
+            console.log('✅ Chart.js disponible');
+            document.getElementById('status').innerHTML = '<span class="success">✅ Chart.js cargado</span>';
+        } else {
+            console.error('❌ Chart.js NO disponible');
+            document.getElementById('status').innerHTML = '<span class="error">❌ Chart.js NO disponible</span>';
+        }
+        
+        // Test API
+        async function testAPI() {
+            try {
+                console.log('🔍 Probando API...');
+                
+                // Test KPIs
+                const kpisResponse = await fetch('http://localhost:8000/api/dashboard/kpis');
+                const kpisData = await kpisResponse.json();
+                console.log('✅ KPIs:', kpisData);
+                
+                if (kpisData.success) {
+                    document.getElementById('kpi-empleados-activos').textContent = kpisData.data.empleados_activos || 0;
+                    document.getElementById('kpi-ausencias-hoy').textContent = kpisData.data.ausencias_hoy || 0;
+                    document.getElementById('kpi-horas-extras').textContent = kpisData.data.horas_extras_mes || 0;
+                    document.getElementById('kpi-recibos-pendientes').textContent = kpisData.data.recibos_pendientes || 0;
+                }
+                
+                // Test Charts
+                const chartsResponse = await fetch('http://localhost:8000/api/dashboard/charts');
+                const chartsData = await chartsResponse.json();
+                console.log('✅ Charts:', chartsData);
+                
+                if (chartsData.success) {
+                    renderCharts(chartsData.data);
+                }
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                document.getElementById('status').innerHTML = '<span class="error">❌ Error: ' + error.message + '</span>';
+            }
+        }
+        
+        function renderCharts(data) {
+            console.log('🎨 Renderizando charts:', data);
+            
+            // Pie Chart
+            if (data.distribucion_roles) {
+                const ctx = document.getElementById('roles-chart');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: data.distribucion_roles.map(item => item.rol),
+                            datasets: [{
+                                data: data.distribucion_roles.map(item => item.cantidad),
+                                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                    console.log('✅ Pie chart renderizado');
+                }
+            }
+            
+            // Line Chart
+            if (data.asistencia_semanal) {
+                const ctx = document.getElementById('asistencia-chart');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.asistencia_semanal.map(item => item.dia),
+                            datasets: [{
+                                label: 'Asistencia (%)',
+                                data: data.asistencia_semanal.map(item => item.asistencia),
+                                borderColor: '#36A2EB',
+                                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                    console.log('✅ Line chart renderizado');
+                }
+            }
+            
+            // Bar Chart
+            if (data.horas_extras_area) {
+                const ctx = document.getElementById('horas-extras-chart');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.horas_extras_area.map(item => item.area),
+                            datasets: [{
+                                label: 'Horas Extras',
+                                data: data.horas_extras_area.map(item => item.horas),
+                                backgroundColor: '#FF6384'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                    console.log('✅ Bar chart renderizado');
+                }
+            }
+        }
+        
+        // Ejecutar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM cargado');
+            setTimeout(testAPI, 500);
+        });
+    </script>
+</body>
+</html>

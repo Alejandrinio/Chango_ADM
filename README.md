@@ -1,156 +1,286 @@
-# 🚀 Chango_ADM - Sistema de Gestión de Empleados
+# 🚀 Chango_ADM - Sistema de Gestión RRHH
 
-## 📋 Descripción
+Sistema completo de gestión de recursos humanos con FastAPI backend y frontend moderno.
 
-Sistema de gestión de empleados desarrollado con **FastAPI** y **MySQL**. Este MVP incluye funcionalidades para gestión de empleados, fichajes (TAW), recibos de sueldo y estadísticas.
+## 📋 Características
 
-## 🏗️ Estructura del Proyecto
+### ✅ **P0 - Crítico (MVP)**
+- **Dashboard** con KPIs en tiempo real y gráficos interactivos
+- **Gestión de Empleados** (ABM completo con búsqueda y exportación)
+- **Control de Fichajes** con detección de anomalías y ajustes manuales
+- **Recibos de Sueldo** con flujo completo de generación → firma → aprobación → publicación
+- **API REST** completa con documentación automática
 
-```
-Chango_ADM/
-├── backend/                 # Backend FastAPI
-│   ├── models/             # Modelos de datos
-│   ├── services/           # Lógica de negocio
-│   ├── database/           # Configuración de BD
-│   └── config.py           # Configuración
-├── database/               # Scripts de base de datos
-│   ├── database_setup_fixed.sql
-│   └── Base_de_Datos_de_Empleados_MVP.csv
-├── docs/                   # Documentación
-├── scripts/                # Scripts de utilidad
-├── main.py                 # Aplicación principal
-├── requirements.txt        # Dependencias
-└── README.md              # Este archivo
-```
+### 🔄 **P1 - Importante (Post-demo)**
+- Gestión de Vacaciones
+- Control de Horas Extras
+- Configuración del Sistema
+- Notificaciones
+
+### 🚀 **P2 - Futuro**
+- Integración con servicios externos (TAW, Walmart)
+- IA para análisis predictivo
+- Microservicios y contenedores
+- Reportes avanzados
 
 ## 🛠️ Tecnologías
 
-- **Backend**: FastAPI + Python 3.8+
-- **Base de Datos**: MySQL 8.0+
-- **ORM**: SQLAlchemy
-- **Autenticación**: JWT
-- **Documentación**: Swagger/OpenAPI
+### Backend
+- **FastAPI** - Framework web moderno y rápido
+- **SQLAlchemy** - ORM para base de datos
+- **MySQL** - Base de datos principal
+- **JWT** - Autenticación segura
+- **Pydantic** - Validación de datos
 
-## 🚀 Instalación
+### Frontend
+- **HTML5/CSS3** - Interfaz moderna y responsive
+- **JavaScript** - Interactividad y llamadas API
+- **Bootstrap 4** - Framework CSS
+- **Chart.js** - Gráficos interactivos
+- **DataTables** - Tablas con paginación y filtros
 
-### 1. Prerrequisitos
+## 🚀 Instalación Rápida
+
+### Prerrequisitos
 - Python 3.8+
 - MySQL 8.0+
 - Git
 
-### 2. Clonar el proyecto
+### 1. Clonar el repositorio
 ```bash
-git clone <url-del-repositorio>
+git clone <repository-url>
 cd Chango_ADM
 ```
 
-### 3. Instalar dependencias
+### 2. Setup automatizado
 ```bash
-pip install -r requirements.txt
+python setup.py
 ```
 
-### 4. Configurar base de datos
+### 3. Iniciar servicios
 ```bash
-# Ejecutar en MySQL Workbench
-mysql -u root -p < database/database_setup_fixed.sql
-```
-
-### 5. Configurar variables de entorno
-Crear archivo `.env`:
-```env
-DATABASE_URL=mysql+mysqlconnector://root:@localhost:3306/chango_adm_db
-SECRET_KEY=tu_clave_secreta
-DEBUG=True
-```
-
-### 6. Ejecutar la aplicación
-```bash
+# Terminal 1 - Backend
 python main.py
+
+# Terminal 2 - Frontend
+cd frontend
+python -m http.server 3000
 ```
 
-## 📱 Endpoints Principales
+### 4. Acceder al sistema
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
 
-### Autenticación
-- `POST /auth/login` - Login de usuario
-- `POST /auth/register` - Registro de usuario
+## 🔑 Credenciales de Acceso
+
+### Usuario Administrador
+- **Username**: `admin`
+- **Password**: `admin123`
+
+### Usuarios de Prueba
+- **Username**: `nombre.apellido` (ej: `agapito.miralles`)
+- **Password**: `123456`
+
+## 📊 Estructura del Proyecto
+
+```
+Chango_ADM/
+├── 📁 frontend/                 # Interfaz de usuario
+│   ├── 📄 index.html           # Dashboard principal
+│   ├── 📄 empleados.html       # Gestión de empleados
+│   ├── 📄 fichajes.html        # Control de fichajes
+│   ├── 📄 recibos.html         # Recibos de sueldo
+│   ├── 📁 js/                  # JavaScript
+│   │   ├── 📄 dashboard.js     # Lógica del dashboard
+│   │   └── 📄            # Servicios API
+│   └── 📁 partials/            # Componentes reutilizables
+│       └── 📄 sidebar.html     # Navegación lateral
+├── 📄 main.py                  # Aplicación FastAPI principal
+├── 📄 config.py                # Configuración del sistema
+├── 📄 database_setup.sql       # Script de base de datos
+├── 📄 import_data.py           # Importación de datos de prueba
+├── 📄 setup.py                 # Setup automatizado
+├── 📄 requirements.txt         # Dependencias Python
+└── 📄 README.md                # Documentación
+```
+
+## 🔌 API Endpoints
+
+### Dashboard
+- `GET /api/dashboard/kpis` - KPIs en tiempo real
+- `GET /api/dashboard/charts` - Datos para gráficos
 
 ### Empleados
-- `GET /empleados` - Listar empleados
-- `GET /empleados/{id}` - Obtener empleado
-- `POST /empleados` - Crear empleado
-- `PUT /empleados/{id}` - Actualizar empleado
+- `GET /api/empleados` - Lista con paginación y filtros
+- `GET /api/empleados/{id}` - Detalle de empleado
+- `POST /api/empleados` - Crear empleado
+- `PUT /api/empleados/{id}` - Actualizar empleado
+- `DELETE /api/empleados/{id}` - Baja lógica
+- `GET /api/empleados/export` - Exportar a CSV
 
-### Fichajes (TAW)
-- `POST /fichajes/entrada` - Registrar entrada
-- `POST /fichajes/salida` - Registrar salida
-- `GET /fichajes/empleado/{id}` - Fichajes de empleado
+### Fichajes
+- `GET /api/fichajes` - Lista con filtros
+- `PATCH /api/fichajes/{id}` - Ajustar fichaje
+- `GET /api/fichajes/export` - Exportar a CSV
 
-### Recibos de Sueldo
-- `GET /recibos/empleado/{id}` - Recibos de empleado
-- `POST /recibos/generar` - Generar recibo
-- `POST /recibos/{id}/firmar` - Firmar recibo
+### Recibos
+- `GET /api/recibos` - Lista con filtros
+- `POST /api/recibos/generar` - Generar recibo
+- `POST /api/recibos/{id}/firmar` - Firmar recibo
+- `POST /api/recibos/{id}/aprobar` - Aprobar recibo
+- `POST /api/recibos/{id}/publicar` - Publicar recibo
+- `GET /api/recibos/{id}/descargar` - Descargar recibo
 
-### Estadísticas
-- `GET /stats/empleados` - Estadísticas de empleados
-- `GET /stats/fichajes` - Estadísticas de fichajes
+## 🗄️ Base de Datos
 
-## 🔐 Credenciales de Prueba
+### Tablas Principales
+- **empleados** - Datos de empleados
+- **usuarios** - Usuarios del sistema
+- **fichajes** - Registro de asistencia
+- **recibos_sueldo** - Recibos de sueldo
+- **departamentos** - Departamentos de la empresa
+- **vacaciones** - Solicitudes de vacaciones
+- **horas_extras** - Control de horas extras
+- **notificaciones** - Sistema de notificaciones
 
-- **Usuario**: `agapitomiralles123`
-- **Password**: `password`
+### Vistas Útiles
+- **empleados_activos** - Empleados en estado activo
+- **estadisticas_fichajes** - Estadísticas de asistencia
 
-## 📊 Base de Datos
+## 🎯 Funcionalidades por Rol
 
-El sistema incluye:
-- **100 empleados** con datos reales
-- **4,400 fichajes** (30 días de datos)
-- **100 recibos de sueldo** del mes actual
-- **6 departamentos** configurados
+### 👑 Administrador
+- Acceso total al sistema
+- Gestión de usuarios y roles
+- Configuración del sistema
 
-## 🎯 Funcionalidades
+### 👥 RRHH
+- Gestión completa de empleados
+- Aprobación de fichajes y recibos
+- Reportes y estadísticas
 
-### ✅ Implementadas
-- Autenticación JWT
-- CRUD de empleados
-- Sistema de fichajes
-- Generación de recibos
-- Estadísticas básicas
+### 👨‍💼 Supervisor
+- Gestión de fichajes del equipo
+- Aprobación de recibos
+- Control de horas extras
 
-### 🚧 En Desarrollo
-- Integración con IA
-- Microservicios
-- Frontend moderno
-- Reportes avanzados
+### 👤 Empleado
+- Ver fichajes propios
+- Firmar recibos propios
+- Solicitar vacaciones
 
-## 📖 Documentación API
+## 🔧 Configuración
 
-Una vez ejecutada la aplicación, accede a:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-## 🐳 Docker (Futuro)
-
+### Variables de Entorno
 ```bash
-# Construir imagen
-docker build -t chango-adm .
+# Base de datos
+DATABASE_URL=mysql+mysqlconnector://root:@localhost:3306/chango_adm_db
 
-# Ejecutar contenedor
-docker run -p 8000:8000 chango-adm
+# Seguridad
+SECRET_KEY=your_secret_key_here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# CORS
+CORS_ORIGINS=["http://localhost:3000", "http://127.0.0.1:3000"]
 ```
 
-## 🤖 Integración con IA
+### Configuración de Desarrollo
+```python
+DEBUG = True
+RELOAD = True
+HOST = "0.0.0.0"
+PORT = 8000
+```
 
-El proyecto está preparado para integración con:
-- **OpenAI API**
-- **Modelos locales** en contenedores
-- **Microservicios** de IA
+## 🧪 Testing
+
+### Probar API
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Test database
+curl http://localhost:8000/test-db
+
+# Dashboard KPIs
+curl http://localhost:8000/api/dashboard/kpis
+```
+
+### Probar Frontend
+1. Abrir http://localhost:3000
+2. Verificar que el dashboard cargue correctamente
+3. Probar navegación entre páginas
+4. Verificar que los gráficos se rendericen
+
+## 🚀 Despliegue
+
+### Desarrollo Local
+```bash
+# Backend con auto-reload
+python main.py
+
+# Frontend
+cd frontend && python -m http.server 3000
+```
+
+### Producción (Futuro)
+```bash
+# Con Docker
+docker-compose up -d
+
+# Con Gunicorn
+gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
+```
+
+## 📈 Roadmap
+
+### ✅ Completado (P0)
+- [x] Dashboard con KPIs y gráficos
+- [x] CRUD completo de empleados
+- [x] Sistema de fichajes con anomalías
+- [x] Flujo completo de recibos
+- [x] API REST documentada
+
+### 🔄 En Desarrollo (P1)
+- [ ] Gestión de vacaciones
+- [ ] Control de horas extras
+- [ ] Sistema de notificaciones
+- [ ] Configuración avanzada
+
+### 🚀 Futuro (P2)
+- [ ] Integración con TAW/Walmart
+- [ ] IA para análisis predictivo
+- [ ] Microservicios con Docker
+- [ ] Reportes PDF avanzados
+- [ ] App móvil
+
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abrir un Pull Request
+
+## 📝 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
 
 ## 📞 Soporte
 
-Para consultas o soporte técnico:
 - **Email**: soporte@chango-adm.com
-- **Issues**: [GitHub Issues]
+- **Documentación**: http://localhost:8000/docs
+- **Issues**: GitHub Issues
+
+## 🙏 Agradecimientos
+
+- FastAPI por el excelente framework
+- Bootstrap por el diseño responsive
+- Chart.js por los gráficos interactivos
+- MySQL por la base de datos robusta
 
 ---
 
-**Desarrollado con ❤️ para el MVP de Chango_ADM**
+**Chango_ADM** - Sistema de Gestión RRHH Moderno y Escalable 🚀
