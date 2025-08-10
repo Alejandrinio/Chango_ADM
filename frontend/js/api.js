@@ -1,5 +1,6 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://localhost:8001'; // data-api
+const CHAT_API_BASE_URL = 'http://localhost:8002'; // chatbot-api
 
 // API Service Class
 class ApiService {
@@ -30,12 +31,11 @@ class ApiService {
         }
     }
 
-    // Get employees with pagination and search
+    // Get employees with pagination (maps page/limit -> skip/limit)
     async getEmpleados(page = 1, limit = 10, search = null) {
-        let endpoint = `/empleados?page=${page}&limit=${limit}`;
-        if (search) {
-            endpoint += `&search=${encodeURIComponent(search)}`;
-        }
+        const skip = Math.max(0, (page - 1) * limit);
+        let endpoint = `/empleados?skip=${skip}&limit=${limit}`;
+        // Backend actual no soporta 'search' genérico; se puede mapear a filtros si aplica
         return await this.fetchApi(endpoint);
     }
 
@@ -44,9 +44,9 @@ class ApiService {
         return await this.fetchApi(`/empleados/${id}`);
     }
 
-    // Get statistics
+    // Get statistics (usa endpoint del data-api)
     async getStats() {
-        return await this.fetchApi('/stats');
+        return await this.fetchApi('/stats/empleados');
     }
 
     // Health check
@@ -55,8 +55,34 @@ class ApiService {
     }
 }
 
-// Global API instance
+// Chat Service for chatbot-api
+class ChatService {
+    constructor() {
+        this.baseUrl = CHAT_API_BASE_URL;
+    }
+
+    async sendMessage(message, sessionId = null, context = null) {
+        const body = JSON.stringify({ message, session_id: sessionId, context });
+        const resp = await fetch(`${this.baseUrl}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body
+        });
+        if (!resp.ok) {
+            throw new Error(`Chat API error: ${resp.status}`);
+        }
+        return await resp.json();
+    }
+
+    async health() {
+        const resp = await fetch(`${this.baseUrl}/health`);
+        return await resp.json();
+    }
+}
+
+// Global API instances
 const api = new ApiService();
+const chatApi = new ChatService();
 
 // Utility functions for UI
 class EmpleadosUI {
@@ -71,13 +97,13 @@ class EmpleadosUI {
     async loadEmpleadosTable() {
         try {
             const result = await this.api.getEmpleados(this.currentPage, this.currentLimit, this.currentSearch);
-            
-            if (result.success) {
-                this.renderEmpleadosTable(result.data);
-                this.renderPagination(result.pagination);
-            } else {
-                this.showError('Error al cargar empleados: ' + result.error);
-            }
+            // Backend retorna lista directamente; adaptar según forma
+            const empleados = Array.isArray(result) ? result : (result.data || result.empleados || []);
+            this.renderEmpleadosTable(empleados);
+            // Render paginación básica sin total si no está disponible
+            const total = result.total || empleados.length || (this.currentPage * this.currentLimit);
+            const pages = Math.ceil(total / this.currentLimit) || this.currentPage;
+            this.renderPagination({ page: this.currentPage, pages, limit: this.currentLimit, total });
         } catch (error) {
             this.showError('Error de conexión: ' + error.message);
         }
@@ -93,13 +119,13 @@ class EmpleadosUI {
         empleados.forEach(empleado => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${empleado.id}</td>
-                <td>${empleado.nombre} ${empleado.apellido}</td>
-                <td>${empleado.rol}</td>
-                <td>${empleado.horario_laboral}</td>
+                <td>${empleado.id ?? ''}</td>
+                <td>${(empleado.nombre || '')} ${(empleado.apellido || '')}</td>
+                <td>${empleado.rol ?? '-'}</td>
+                <td>${empleado.horario_laboral ?? '-'}</td>
                 <td>
-                    <span class="badge badge-${this.getEstadoBadgeClass(empleado.estado)}">
-                        ${empleado.estado}
+                    <span class="badge badge-${this.getEstadoBadgeClass((empleado.estado || 'activo').toString().toLowerCase())}">
+                        ${empleado.estado || 'ACTIVO'}
                     </span>
                 </td>
                 <td>${empleado.email || '-'}</td>
@@ -181,9 +207,7 @@ class EmpleadosUI {
             </nav>
             <div class="text-center mt-2">
                 <small class="text-muted">
-                    Mostrando ${((pagination.page - 1) * pagination.limit) + 1} a 
-                    ${Math.min(pagination.page * pagination.limit, pagination.total)} 
-                    de ${pagination.total} empleados
+                    Página ${pagination.page} • ${pagination.limit} por página
                 </small>
             </div>
         `;
@@ -208,10 +232,11 @@ class EmpleadosUI {
     async viewEmpleado(id) {
         try {
             const result = await this.api.getEmpleado(id);
-            if (result.success) {
-                this.showEmpleadoModal(result.data, 'view');
+            const empleado = result && !Array.isArray(result) && result.id ? result : (result.data || result);
+            if (empleado) {
+                this.showEmpleadoModal(empleado, 'view');
             } else {
-                this.showError('Error al cargar empleado: ' + result.error);
+                this.showError('Empleado no encontrado');
             }
         } catch (error) {
             this.showError('Error de conexión: ' + error.message);
@@ -222,10 +247,11 @@ class EmpleadosUI {
     async editEmpleado(id) {
         try {
             const result = await this.api.getEmpleado(id);
-            if (result.success) {
-                this.showEmpleadoModal(result.data, 'edit');
+            const empleado = result && !Array.isArray(result) && result.id ? result : (result.data || result);
+            if (empleado) {
+                this.showEmpleadoModal(empleado, 'edit');
             } else {
-                this.showError('Error al cargar empleado: ' + result.error);
+                this.showError('Empleado no encontrado');
             }
         } catch (error) {
             this.showError('Error de conexión: ' + error.message);
@@ -245,27 +271,19 @@ class EmpleadosUI {
         modalBody.innerHTML = `
             <div class="row">
                 <div class="col-md-6">
-                    <p><strong>ID:</strong> ${empleado.id}</p>
-                    <p><strong>Nombre:</strong> ${empleado.nombre}</p>
-                    <p><strong>Apellido:</strong> ${empleado.apellido}</p>
-                    <p><strong>Rol:</strong> ${empleado.rol}</p>
+                    <p><strong>ID:</strong> ${empleado.id ?? ''}</p>
+                    <p><strong>Nombre:</strong> ${empleado.nombre ?? ''}</p>
+                    <p><strong>Apellido:</strong> ${empleado.apellido ?? ''}</p>
                     <p><strong>Estado:</strong> 
-                        <span class="badge badge-${this.getEstadoBadgeClass(empleado.estado)}">
-                            ${empleado.estado}
+                        <span class="badge badge-${this.getEstadoBadgeClass((empleado.estado || 'activo').toString().toLowerCase())}">
+                            ${empleado.estado || 'ACTIVO'}
                         </span>
                     </p>
                 </div>
                 <div class="col-md-6">
                     <p><strong>Email:</strong> ${empleado.email || '-'}</p>
                     <p><strong>Teléfono:</strong> ${empleado.telefono || '-'}</p>
-                    <p><strong>Horario:</strong> ${empleado.horario_laboral}</p>
-                    <p><strong>Nivel de estudio:</strong> ${empleado.nivel_estudio}</p>
-                    <p><strong>Fecha de nacimiento:</strong> ${empleado.fecha_nacimiento || '-'}</p>
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-12">
-                    <p><strong>Domicilio:</strong> ${empleado.domicilio || '-'}</p>
+                    <p><strong>Fecha de ingreso:</strong> ${empleado.fecha_ingreso || '-'}</p>
                 </div>
             </div>
         `;
@@ -278,82 +296,43 @@ class EmpleadosUI {
     async loadStats() {
         try {
             const result = await this.api.getStats();
-            if (result.success) {
-                this.renderStats(result.data);
-            } else {
-                this.showError('Error al cargar estadísticas: ' + result.error);
+            // Adaptar a forma del backend
+            if (result && typeof result === 'object') {
+                this.renderStats(result);
             }
         } catch (error) {
             this.showError('Error de conexión: ' + error.message);
         }
     }
 
-    // Render statistics
+    // Render statistics (adaptado a /stats/empleados del data-api)
     renderStats(stats) {
-        // Update stats cards
         const totalElement = document.getElementById('total-empleados');
         const activosElement = document.getElementById('empleados-activos');
         const inactivosElement = document.getElementById('empleados-inactivos');
         const vacacionesElement = document.getElementById('empleados-vacaciones');
 
-        if (totalElement) totalElement.textContent = stats.empleados.total;
-        if (activosElement) activosElement.textContent = stats.empleados.activos;
-        if (inactivosElement) inactivosElement.textContent = stats.empleados.inactivos;
-        if (vacacionesElement) vacacionesElement.textContent = stats.empleados.vacaciones;
-
-        // Render roles chart if exists
-        this.renderRolesChart(stats.roles);
-    }
-
-    // Render roles chart
-    renderRolesChart(roles) {
-        const chartContainer = document.getElementById('roles-chart');
-        if (!chartContainer) return;
-
-        // Simple chart using Chart.js if available
-        if (typeof Chart !== 'undefined') {
-            const ctx = chartContainer.getContext('2d');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: roles.map(r => r.rol),
-                    datasets: [{
-                        data: roles.map(r => r.cantidad),
-                        backgroundColor: [
-                            '#FF6384',
-                            '#36A2EB',
-                            '#FFCE56',
-                            '#4BC0C0',
-                            '#9966FF'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
+        if (totalElement && typeof stats.total_empleados !== 'undefined') totalElement.textContent = stats.total_empleados;
+        // Si hay desglose por estado, intentar asignar
+        if (Array.isArray(stats.por_estado)) {
+            const map = Object.fromEntries(stats.por_estado.map(e => [String(e.estado || e.ESTADO || '').toLowerCase(), e.cantidad || e.CANTIDAD || 0]));
+            if (activosElement && typeof map['activo'] !== 'undefined') activosElement.textContent = map['activo'];
+            if (inactivosElement && typeof map['inactivo'] !== 'undefined') inactivosElement.textContent = map['inactivo'];
+            if (vacacionesElement && typeof map['vacaciones'] !== 'undefined') vacacionesElement.textContent = map['vacaciones'];
         }
     }
 
     // Show error message
     showError(message) {
-        // You can implement this based on your UI framework
         console.error(message);
         alert(message); // Simple alert for now
     }
 
     // Initialize the UI
     init() {
-        // Load initial data
         this.loadEmpleadosTable();
         this.loadStats();
 
-        // Setup search functionality
         const searchInput = document.getElementById('search-empleados');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
