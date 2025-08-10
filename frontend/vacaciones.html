@@ -1,121 +1,656 @@
 <!DOCTYPE html>
 <html dir="ltr" lang="es">
+
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Vacaciones - Chango_ADM">
-  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon.png">
-  <title>Vacaciones - Chango_ADM</title>
-  <link href="assets/libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="dist/css/style.min.css" rel="stylesheet">
-</head>
-<body>
-  <div class="preloader">
-    <div class="lds-ripple"><div class="lds-pos"></div><div class="lds-pos"></div></div>
-  </div>
-  <div id="main-wrapper">
-    <header class="topbar" data-navbarbg="skin5">
-      <nav class="navbar top-navbar navbar-expand-md navbar-dark">
-        <div class="navbar-header" data-logobg="skin5">
-          <a class="navbar-brand" href="index.html">
-            <b class="logo-icon"><img src="assets/images/logo-icon.png" alt="homepage" class="light-logo" /></b>
-            <span class="logo-text"><img src="assets/images/logo-text.png" alt="homepage" class="light-logo" /></span>
-          </a>
-        </div>
-        <div class="navbar-collapse collapse" id="navbarSupportedContent" data-navbarbg="skin5">
-          <ul class="navbar-nav float-left mr-auto">
-            <li class="nav-item d-none d-md-block"><a class="nav-link sidebartoggler waves-effect waves-light" href="javascript:void(0)" data-sidebartype="mini-sidebar"><i class="mdi mdi-menu font-24"></i></a></li>
-          </ul>
-        </div>
-      </nav>
-    </header>
-
-    <aside class="left-sidebar" data-sidebarbg="skin5">
-      <div class="scroll-sidebar" id="sidebar-root"></div>
-    </aside>
-
-    <div class="page-wrapper">
-      <div class="page-breadcrumb">
-        <div class="row">
-          <div class="col-12 d-flex no-block align-items-center">
-            <h4 class="page-title">Vacaciones</h4>
-            <div class="ml-auto text-right">
-              <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                  <li class="breadcrumb-item"><a href="index.html">Inicio</a></li>
-                  <li class="breadcrumb-item active" aria-current="page">Vacaciones</li>
-                </ol>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-md-12">
-            <div class="card">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h5 class="card-title mb-0">Solicitudes</h5>
-                  <button class="btn btn-primary btn-sm"><i class="mdi mdi-calendar-plus"></i> Nueva solicitud</button>
-                </div>
-                <div class="table-responsive">
-                  <table class="table table-striped table-bordered">
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Empleado</th>
-                        <th>Desde</th>
-                        <th>Hasta</th>
-                        <th>Días</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr><td colspan="7" class="text-center">Próximamente conectado al backend</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <footer class="footer text-center">Chango_ADM</footer>
-    </div>
-  </div>
-
-  <script src="assets/libs/jquery/dist/jquery.min.js"></script>
-  <script src="assets/libs/popper.js/dist/umd/popper.min.js"></script>
-  <script src="assets/libs/bootstrap/dist/js/bootstrap.min.js"></script>
-  <script src="assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js"></script>
-  <script src="assets/extra-libs/sparkline/sparkline.js"></script>
-  <script src="dist/js/waves.js"></script>
-  <script src="dist/js/sidebarmenu.js"></script>
-  <script src="dist/js/custom.min.js"></script>
-
-  <script>
-    fetch('partials/sidebar.html', { cache: 'no-store' })
-      .then(r => r.text())
-      .then(html => {
-        const root = document.getElementById('sidebar-root');
-        if (root) {
-          root.innerHTML = html;
-          const page = (location.pathname.split('/').pop() || 'index.html');
-          root.querySelectorAll('#sidebarnav a').forEach(a => {
-            if (a.getAttribute('href') === page) {
-              a.classList.add('active');
-              if (a.parentElement) a.parentElement.classList.add('selected');
-            }
-          });
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Gestión de Vacaciones - Chango_ADM">
+    <meta name="author" content="Chango_ADM">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon.png">
+    <title>Gestión de Vacaciones - Chango_ADM</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="assets/libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="dist/css/icons/font-awesome/css/fontawesome-all.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="assets/extra-libs/DataTables/datatables.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="dist/css/style.min.css" rel="stylesheet">
+    
+    <style>
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
         }
-      })
-      .catch(console.error);
-  </script>
+        .status-pendiente { background-color: #ffc107; color: #000; }
+        .status-aprobado { background-color: #28a745; color: #fff; }
+        .status-rechazado { background-color: #dc3545; color: #fff; }
+        
+        .filter-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-card {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-card h3 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .stats-card p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="preloader">
+        <div class="lds-ripple">
+            <div class="lds-pos"></div>
+            <div class="lds-pos"></div>
+        </div>
+    </div>
+
+    <div id="main-wrapper">
+        <!-- Header -->
+        <header class="topbar" data-navbarbg="skin5">
+            <nav class="navbar top-navbar navbar-expand-md navbar-dark">
+                <div class="navbar-header" data-logobg="skin5">
+                    <a class="navbar-brand" href="index.html">
+                        <b class="logo-icon">
+                            <img src="assets/images/logo-icon.png" alt="homepage" class="light-logo" />
+                        </b>
+                        <span class="logo-text">
+                            <img src="assets/images/logo-text.png" alt="homepage" class="light-logo" />
+                        </span>
+                    </a>
+                </div>
+                <div class="navbar-collapse collapse" id="navbarSupportedContent" data-navbarbg="skin5">
+                    <ul class="navbar-nav float-left mr-auto">
+                        <li class="nav-item d-none d-md-block">
+                            <a class="nav-link sidebartoggler waves-effect waves-light" href="javascript:void(0)" data-sidebartype="mini-sidebar">
+                                <i class="mdi mdi-menu font-24"></i>
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav float-right">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-user-circle fa-2x"></i>
+                                <span class="user-name ml-2">Usuario</span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right user-dd animated">
+                                <a class="dropdown-item" href="javascript:void(0)">
+                                    <i class="fas fa-user mr-1 ml-1"></i> <span class="user-name">Usuario</span>
+                                </a>
+                                <a class="dropdown-item" href="javascript:void(0)">
+                                    <i class="fas fa-briefcase mr-1 ml-1"></i> <span class="user-role">Rol</span>
+                                </a>
+                                <a class="dropdown-item" href="javascript:void(0)">
+                                    <i class="fas fa-cog mr-1 ml-1"></i> Configuración
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="logout()">
+                                    <i class="fas fa-power-off mr-1 ml-1"></i> Cerrar Sesión
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="left-sidebar" data-sidebarbg="skin5">
+            <div class="scroll-sidebar" id="sidebar-root"></div>
+        </aside>
+
+        <!-- Page wrapper -->
+        <div class="page-wrapper">
+            <div class="page-breadcrumb">
+                <div class="row">
+                    <div class="col-12 d-flex no-block align-items-center">
+                        <h4 class="page-title">Gestión de Vacaciones</h4>
+                        <div class="ml-auto text-right">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="index.html">Inicio</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Vacaciones</li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid">
+                <!-- Estadísticas -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <h3 id="total-solicitudes">0</h3>
+                            <p>Total Solicitudes</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <h3 id="pendientes">0</h3>
+                            <p>Pendientes</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <h3 id="aprobadas">0</h3>
+                            <p>Aprobadas</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <h3 id="rechazadas">0</h3>
+                            <p>Rechazadas</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="filter-section">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label for="filtro-empleado">Empleado</label>
+                            <select id="filtro-empleado" class="form-control">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="filtro-estado">Estado</label>
+                            <select id="filtro-estado" class="form-control">
+                                <option value="">Todos</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="aprobado">Aprobado</option>
+                                <option value="rechazado">Rechazado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="filtro-fecha-inicio">Desde</label>
+                            <input type="date" id="filtro-fecha-inicio" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="filtro-fecha-fin">Hasta</label>
+                            <input type="date" id="filtro-fecha-fin" class="form-control">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-primary mr-2" onclick="vacacionesUI.aplicarFiltros()">
+                                <i class="fas fa-filter"></i> Filtrar
+                            </button>
+                            <button class="btn btn-secondary mr-2" onclick="vacacionesUI.limpiarFiltros()">
+                                <i class="fas fa-times"></i> Limpiar
+                            </button>
+                            <button class="btn btn-success" onclick="vacacionesUI.exportarCSV()">
+                                <i class="fas fa-download"></i> Exportar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Vacaciones -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0">Solicitudes de Vacaciones</h5>
+                                    <button class="btn btn-primary" onclick="vacacionesUI.mostrarModalNueva()">
+                                        <i class="fas fa-plus"></i> Nueva Solicitud
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table id="tabla-vacaciones" class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Empleado</th>
+                                                <th>Fecha Inicio</th>
+                                                <th>Fecha Fin</th>
+                                                <th>Días</th>
+                                                <th>Motivo</th>
+                                                <th>Estado</th>
+                                                <th>Aprobado Por</th>
+                                                <th>Fecha Solicitud</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="footer text-center">
+                Chango_ADM
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modal Nueva Solicitud -->
+    <div class="modal fade" id="modalNuevaVacacion" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva Solicitud de Vacaciones</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNuevaVacacion">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="empleado_id">Empleado</label>
+                                    <select id="empleado_id" class="form-control" required>
+                                        <option value="">Seleccionar empleado</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="dias_solicitados">Días Solicitados</label>
+                                    <input type="number" id="dias_solicitados" class="form-control" min="1" max="30" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="fecha_inicio">Fecha de Inicio</label>
+                                    <input type="date" id="fecha_inicio" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="fecha_fin">Fecha de Fin</label>
+                                    <input type="date" id="fecha_fin" class="form-control" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="motivo">Motivo</label>
+                            <textarea id="motivo" class="form-control" rows="3" placeholder="Descripción del motivo de la solicitud"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="vacacionesUI.crearSolicitud()">Crear Solicitud</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Aprobar/Rechazar -->
+    <div class="modal fade" id="modalAprobarRechazar" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Aprobar/Rechazar Solicitud</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea <span id="accion-texto">aprobar</span> esta solicitud de vacaciones?</p>
+                    <div class="form-group">
+                        <label for="observaciones">Observaciones (opcional)</label>
+                        <textarea id="observaciones" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnAprobar" onclick="vacacionesUI.aprobarSolicitud()">Aprobar</button>
+                    <button type="button" class="btn btn-danger" id="btnRechazar" onclick="vacacionesUI.rechazarSolicitud()">Rechazar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/libs/jquery/dist/jquery.min.js"></script>
+    <script src="assets/libs/popper.js/dist/umd/popper.min.js"></script>
+    <script src="assets/libs/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js"></script>
+    <script src="assets/extra-libs/sparkline/sparkline.js"></script>
+    <script src="dist/js/waves.js"></script>
+    <script src="dist/js/sidebarmenu.js"></script>
+    <script src="dist/js/custom.min.js"></script>
+    
+    <!-- DataTables -->
+    <script src="assets/extra-libs/DataTables/datatables.min.js"></script>
+    
+    <!-- Configuration -->
+    <script src="js/config.js"></script>
+    
+    <!-- Authentication -->
+    <script src="js/auth.js"></script>
+    
+    <!-- Vacaciones JavaScript -->
+    <script>
+        class VacacionesUI {
+            constructor() {
+                this.tabla = null;
+                this.solicitudActual = null;
+                this.accionActual = '';
+                this.init();
+            }
+
+            init() {
+                this.cargarEmpleados();
+                this.inicializarTabla();
+                this.cargarVacaciones();
+                this.actualizarEstadisticas();
+            }
+
+            cargarEmpleados() {
+                fetch(`${API_BASE_URL}/api/empleados?limit=1000`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const empleados = data.data.empleados || data.data;
+                            const selectEmpleados = document.getElementById('filtro-empleado');
+                            const selectNuevaSolicitud = document.getElementById('empleado_id');
+                            
+                            empleados.forEach(empleado => {
+                                const option = document.createElement('option');
+                                option.value = empleado.id;
+                                option.textContent = `${empleado.nombre} ${empleado.apellido}`;
+                                
+                                selectEmpleados.appendChild(option.cloneNode(true));
+                                selectNuevaSolicitud.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error cargando empleados:', error));
+            }
+
+            inicializarTabla() {
+                this.tabla = $('#tabla-vacaciones').DataTable({
+                    language: {
+                        "sProcessing":     "Procesando...",
+                        "sLengthMenu":     "Mostrar _MENU_ registros",
+                        "sZeroRecords":    "No se encontraron resultados",
+                        "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                        "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                        "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                        "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                        "sInfoPostFix":    "",
+                        "sSearch":         "Buscar:",
+                        "sUrl":            "",
+                        "sInfoThousands":  ",",
+                        "sLoadingRecords": "Cargando...",
+                        "oPaginate": {
+                            "sFirst":    "Primero",
+                            "sLast":     "Último",
+                            "sNext":     "Siguiente",
+                            "sPrevious": "Anterior"
+                        },
+                        "oAria": {
+                            "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                        }
+                    },
+                    pageLength: 10,
+                    order: [[0, 'desc']],
+                    columns: [
+                        { data: 'id' },
+                        { data: 'empleado_nombre' },
+                        { data: 'fecha_inicio' },
+                        { data: 'fecha_fin' },
+                        { data: 'dias_solicitados' },
+                        { data: 'motivo' },
+                        { 
+                            data: 'estado',
+                            render: function(data) {
+                                const clases = {
+                                    'pendiente': 'status-pendiente',
+                                    'aprobado': 'status-aprobado',
+                                    'rechazado': 'status-rechazado'
+                                };
+                                return `<span class="badge status-badge ${clases[data] || ''}">${data}</span>`;
+                            }
+                        },
+                        { data: 'aprobado_por_nombre' },
+                        { data: 'created_at' },
+                        {
+                            data: null,
+                            render: function(data) {
+                                let botones = '';
+                                if (data.estado === 'pendiente') {
+                                    botones += `<button class="btn btn-success btn-sm mr-1" onclick="vacacionesUI.mostrarModalAprobar(${data.id}, 'aprobar')">
+                                        <i class="fas fa-check"></i>
+                                    </button>`;
+                                    botones += `<button class="btn btn-danger btn-sm mr-1" onclick="vacacionesUI.mostrarModalAprobar(${data.id}, 'rechazar')">
+                                        <i class="fas fa-times"></i>
+                                    </button>`;
+                                }
+                                botones += `<button class="btn btn-info btn-sm" onclick="vacacionesUI.verDetalle(${data.id})">
+                                    <i class="fas fa-eye"></i>
+                                </button>`;
+                                return botones;
+                            }
+                        }
+                    ]
+                });
+            }
+
+            cargarVacaciones() {
+                fetch(`${API_BASE_URL}/api/vacaciones`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.tabla.clear().rows.add(data.data).draw();
+                            this.actualizarEstadisticas();
+                        }
+                    })
+                    .catch(error => console.error('Error cargando vacaciones:', error));
+            }
+
+            actualizarEstadisticas() {
+                fetch(`${API_BASE_URL}/api/stats-vacaciones`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('total-solicitudes').textContent = data.data.total || 0;
+                            document.getElementById('pendientes').textContent = data.data.pendientes || 0;
+                            document.getElementById('aprobadas').textContent = data.data.aprobadas || 0;
+                            document.getElementById('rechazadas').textContent = data.data.rechazadas || 0;
+                        }
+                    })
+                    .catch(error => console.error('Error cargando estadísticas:', error));
+            }
+
+            aplicarFiltros() {
+                const filtros = {
+                    empleado_id: document.getElementById('filtro-empleado').value,
+                    estado: document.getElementById('filtro-estado').value,
+                    fecha_inicio: document.getElementById('filtro-fecha-inicio').value,
+                    fecha_fin: document.getElementById('filtro-fecha-fin').value
+                };
+
+                const params = new URLSearchParams();
+                Object.keys(filtros).forEach(key => {
+                    if (filtros[key]) params.append(key, filtros[key]);
+                });
+
+                fetch(`${API_BASE_URL}/api/vacaciones?${params.toString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.tabla.clear().rows.add(data.data).draw();
+                        }
+                    })
+                    .catch(error => console.error('Error aplicando filtros:', error));
+            }
+
+            limpiarFiltros() {
+                document.getElementById('filtro-empleado').value = '';
+                document.getElementById('filtro-estado').value = '';
+                document.getElementById('filtro-fecha-inicio').value = '';
+                document.getElementById('filtro-fecha-fin').value = '';
+                this.cargarVacaciones();
+            }
+
+            exportarCSV() {
+                const filtros = {
+                    empleado_id: document.getElementById('filtro-empleado').value,
+                    estado: document.getElementById('filtro-estado').value,
+                    fecha_inicio: document.getElementById('filtro-fecha-inicio').value,
+                    fecha_fin: document.getElementById('filtro-fecha-fin').value
+                };
+
+                const params = new URLSearchParams();
+                Object.keys(filtros).forEach(key => {
+                    if (filtros[key]) params.append(key, filtros[key]);
+                });
+
+                window.open(`${API_BASE_URL}/api/vacaciones/export?${params.toString()}`, '_blank');
+            }
+
+            mostrarModalNueva() {
+                document.getElementById('formNuevaVacacion').reset();
+                $('#modalNuevaVacacion').modal('show');
+            }
+
+            crearSolicitud() {
+                const formData = {
+                    empleado_id: document.getElementById('empleado_id').value,
+                    fecha_inicio: document.getElementById('fecha_inicio').value,
+                    fecha_fin: document.getElementById('fecha_fin').value,
+                    dias_solicitados: document.getElementById('dias_solicitados').value,
+                    motivo: document.getElementById('motivo').value
+                };
+
+                fetch(`${API_BASE_URL}/api/vacaciones`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        $('#modalNuevaVacacion').modal('hide');
+                        this.cargarVacaciones();
+                        alert('Solicitud creada exitosamente');
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error creando solicitud:', error);
+                    alert('Error al crear la solicitud');
+                });
+            }
+
+            mostrarModalAprobar(id, accion) {
+                this.solicitudActual = id;
+                this.accionActual = accion;
+                document.getElementById('accion-texto').textContent = accion === 'aprobar' ? 'aprobar' : 'rechazar';
+                document.getElementById('btnAprobar').style.display = accion === 'aprobar' ? 'inline-block' : 'none';
+                document.getElementById('btnRechazar').style.display = accion === 'rechazar' ? 'inline-block' : 'none';
+                $('#modalAprobarRechazar').modal('show');
+            }
+
+            aprobarSolicitud() {
+                this.cambiarEstado('aprobado');
+            }
+
+            rechazarSolicitud() {
+                this.cambiarEstado('rechazado');
+            }
+
+            cambiarEstado(estado) {
+                const observaciones = document.getElementById('observaciones').value;
+                
+                fetch(`${API_BASE_URL}/api/vacaciones/${this.solicitudActual}/cambiar-estado`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        estado: estado,
+                        observaciones: observaciones
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        $('#modalAprobarRechazar').modal('hide');
+                        this.cargarVacaciones();
+                        alert(`Solicitud ${estado} exitosamente`);
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cambiando estado:', error);
+                    alert('Error al cambiar el estado');
+                });
+            }
+
+            verDetalle(id) {
+                fetch(`${API_BASE_URL}/api/vacaciones/${id}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const vacacion = data.data;
+                            alert(`Detalle de la solicitud:\n\nEmpleado: ${vacacion.empleado_nombre}\nFecha Inicio: ${vacacion.fecha_inicio}\nFecha Fin: ${vacacion.fecha_fin}\nDías: ${vacacion.dias_solicitados}\nEstado: ${vacacion.estado}\nMotivo: ${vacacion.motivo || 'No especificado'}`);
+                        }
+                    })
+                    .catch(error => console.error('Error cargando detalle:', error));
+            }
+        }
+
+        // Inicializar cuando el DOM esté listo
+        let vacacionesUI;
+        document.addEventListener('DOMContentLoaded', function() {
+            vacacionesUI = new VacacionesUI();
+            
+            // Cargar sidebar
+            fetch('partials/sidebar.html', { cache: 'no-store' })
+                .then(r => r.text())
+                .then(html => {
+                    const root = document.getElementById('sidebar-root');
+                    if (root) {
+                        root.innerHTML = html;
+                        const page = (location.pathname.split('/').pop() || 'index.html');
+                        root.querySelectorAll('#sidebarnav a').forEach(a => {
+                            if (a.getAttribute('href') === page) {
+                                a.classList.add('active');
+                                if (a.parentElement) a.parentElement.classList.add('selected');
+                            }
+                        });
+                    }
+                })
+                .catch(console.error);
+        });
+    </script>
 </body>
 </html>
 

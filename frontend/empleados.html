@@ -52,16 +52,20 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-user-circle fa-2x"></i>
+                                <span class="user-name ml-2">Usuario</span>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right user-dd animated">
                                 <a class="dropdown-item" href="javascript:void(0)">
-                                    <i class="fas fa-user mr-1 ml-1"></i> Mi Perfil
+                                    <i class="fas fa-user mr-1 ml-1"></i> <span class="user-name">Usuario</span>
+                                </a>
+                                <a class="dropdown-item" href="javascript:void(0)">
+                                    <i class="fas fa-briefcase mr-1 ml-1"></i> <span class="user-role">Rol</span>
                                 </a>
                                 <a class="dropdown-item" href="javascript:void(0)">
                                     <i class="fas fa-cog mr-1 ml-1"></i> Configuración
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="authentication-login.html">
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="logout()">
                                     <i class="fas fa-power-off mr-1 ml-1"></i> Cerrar Sesión
                                 </a>
                             </div>
@@ -279,6 +283,9 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- Authentication -->
+    <script src="js/auth.js"></script>
+    
     <!-- Custom API Script -->
     <script src="js/api.js"></script>
 
@@ -290,6 +297,11 @@
             
             // Show loading message
             $('#empleados-table-body').html('<tr><td colspan="8" class="text-center">Cargando empleados...</td></tr>');
+            
+            // Update user info in UI
+            if (authManager) {
+                authManager.updateUserInfo();
+            }
         });
     </script>
     <!-- Load unified sidebar -->

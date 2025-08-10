@@ -1,122 +1,971 @@
 <!DOCTYPE html>
 <html dir="ltr" lang="es">
+
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Recibos de sueldo - Chango_ADM">
-  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon.png">
-  <title>Recibos de sueldo - Chango_ADM</title>
-  <link href="assets/libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="dist/css/style.min.css" rel="stylesheet">
-</head>
-<body>
-  <div class="preloader">
-    <div class="lds-ripple"><div class="lds-pos"></div><div class="lds-pos"></div></div>
-  </div>
-  <div id="main-wrapper">
-    <header class="topbar" data-navbarbg="skin5">
-      <nav class="navbar top-navbar navbar-expand-md navbar-dark">
-        <div class="navbar-header" data-logobg="skin5">
-          <a class="navbar-brand" href="index.html">
-            <b class="logo-icon"><img src="assets/images/logo-icon.png" alt="homepage" class="light-logo" /></b>
-            <span class="logo-text"><img src="assets/images/logo-text.png" alt="homepage" class="light-logo" /></span>
-          </a>
-        </div>
-        <div class="navbar-collapse collapse" id="navbarSupportedContent" data-navbarbg="skin5">
-          <ul class="navbar-nav float-left mr-auto">
-            <li class="nav-item d-none d-md-block"><a class="nav-link sidebartoggler waves-effect waves-light" href="javascript:void(0)" data-sidebartype="mini-sidebar"><i class="mdi mdi-menu font-24"></i></a></li>
-          </ul>
-        </div>
-      </nav>
-    </header>
-
-    <aside class="left-sidebar" data-sidebarbg="skin5">
-      <div class="scroll-sidebar" id="sidebar-root"></div>
-    </aside>
-
-    <div class="page-wrapper">
-      <div class="page-breadcrumb">
-        <div class="row">
-          <div class="col-12 d-flex no-block align-items-center">
-            <h4 class="page-title">Recibos de sueldo</h4>
-            <div class="ml-auto text-right">
-              <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                  <li class="breadcrumb-item"><a href="index.html">Inicio</a></li>
-                  <li class="breadcrumb-item active" aria-current="page">Recibos</li>
-                </ol>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="container-fluid">
-        <div class="card">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="card-title mb-0">Listado de Recibos</h5>
-              <div>
-                <button class="btn btn-primary btn-sm"><i class="mdi mdi-file-plus"></i> Generar</button>
-                <button class="btn btn-secondary btn-sm"><i class="mdi mdi-upload"></i> Publicar</button>
-                <button class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-download"></i> Exportar CSV</button>
-              </div>
-            </div>
-            <div class="table-responsive">
-              <table class="table table-striped table-bordered">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Empleado</th>
-                    <th>Mes</th>
-                    <th>Bruto</th>
-                    <th>Neto</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td colspan="7" class="text-center">Próximamente conectado al backend</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <footer class="footer text-center">Chango_ADM</footer>
-    </div>
-  </div>
-
-  <script src="assets/libs/jquery/dist/jquery.min.js"></script>
-  <script src="assets/libs/popper.js/dist/umd/popper.min.js"></script>
-  <script src="assets/libs/bootstrap/dist/js/bootstrap.min.js"></script>
-  <script src="assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js"></script>
-  <script src="assets/extra-libs/sparkline/sparkline.js"></script>
-  <script src="dist/js/waves.js"></script>
-  <script src="dist/js/sidebarmenu.js"></script>
-  <script src="dist/js/custom.min.js"></script>
-
-  <script>
-    fetch('partials/sidebar.html', { cache: 'no-store' })
-      .then(r => r.text())
-      .then(html => {
-        const root = document.getElementById('sidebar-root');
-        if (root) {
-          root.innerHTML = html;
-          const page = (location.pathname.split('/').pop() || 'index.html');
-          root.querySelectorAll('#sidebarnav a').forEach(a => {
-            if (a.getAttribute('href') === page) {
-              a.classList.add('active');
-              if (a.parentElement) a.parentElement.classList.add('selected');
-            }
-          });
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- Favicon icon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon.png">
+    <title>Chango_ADM - Gestión de Recibos de Sueldo</title>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="assets/extra-libs/multicheck/multicheck.css">
+    <link href="assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css" rel="stylesheet">
+    <link href="dist/css/style.min.css" rel="stylesheet">
+    <style>
+        .badge-generado {
+            background-color: #17a2b8;
+            color: white;
         }
-      })
-      .catch(console.error);
-  </script>
+        .badge-firmado {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .badge-aprobado {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-publicado {
+            background-color: #6f42c1;
+            color: white;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            margin: 0 2px;
+        }
+        .workflow-step {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin: 0 5px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .workflow-step.active {
+            background-color: #28a745;
+            color: white;
+        }
+        .workflow-step.inactive {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+    </style>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+</head>
+
+<body>
+    <!-- ============================================================== -->
+    <!-- Preloader - style you can find in spinners.css -->
+    <!-- ============================================================== -->
+    <div class="preloader">
+        <div class="lds-ripple">
+            <div class="lds-pos"></div>
+            <div class="lds-pos"></div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- Main wrapper - style you can find in pages.scss -->
+    <!-- ============================================================== -->
+    <div id="main-wrapper">
+        <!-- ============================================================== -->
+        <!-- Topbar header - style you can find in pages.scss -->
+        <!-- ============================================================== -->
+        <header class="topbar" data-navbarbg="skin5">
+            <nav class="navbar top-navbar navbar-expand-md navbar-dark">
+                <div class="navbar-header" data-logobg="skin5">
+                    <!-- This is for the sidebar toggle which is visible on mobile only -->
+                    <a class="nav-toggler waves-effect waves-light d-block d-md-none" href="javascript:void(0)"><i class="ti-menu ti-close"></i></a>
+                    <!-- ============================================================== -->
+                    <!-- Logo -->
+                    <!-- ============================================================== -->
+                    <a class="navbar-brand" href="index.html">
+                        <!-- Logo icon -->
+                        <b class="logo-icon p-l-10">
+                            <!--You can put here icon as well // <i class="wi wi-sunset"></i> //-->
+                            <!-- Dark Logo icon -->
+                            <img src="assets/images/logo-icon.png" alt="homepage" class="light-logo" />
+                           
+                        </b>
+                        <!--End Logo icon -->
+                         <!-- Logo text -->
+                        <span class="logo-text">
+                             <!-- dark Logo text -->
+                             <img src="assets/images/logo-text.png" alt="homepage" class="light-logo" />
+                            
+                        </span>
+                        <!-- Logo icon -->
+                        <!-- <b class="logo-icon"> -->
+                            <!--You can put here icon as well // <i class="wi wi-sunset"></i> //-->
+                            <!-- Dark Logo icon -->
+                            <!-- <img src="assets/images/logo-text.png" alt="homepage" class="light-logo" /> -->
+                            
+                        <!-- </b> -->
+                        <!--End Logo icon -->
+                    </a>
+                    <!-- ============================================================== -->
+                    <!-- End Logo -->
+                    <!-- ============================================================== -->
+                    <!-- ============================================================== -->
+                    <!-- Toggle which is visible on mobile only -->
+                    <!-- ============================================================== -->
+                    <a class="topbartoggler d-block d-md-none waves-effect waves-light" href="javascript:void(0)" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i class="ti-more"></i></a>
+                </div>
+                <!-- ============================================================== -->
+                <!-- End Logo -->
+                <!-- ============================================================== -->
+                <div class="navbar-collapse collapse" id="navbarSupportedContent" data-navbarbg="skin5">
+                    <!-- ============================================================== -->
+                    <!-- toggle and nav items -->
+                    <!-- ============================================================== -->
+                    <ul class="navbar-nav float-left mr-auto">
+                        <li class="nav-item d-none d-md-block"><a class="nav-link sidebartoggler waves-effect waves-light" href="javascript:void(0)" data-sidebartype="mini-sidebar"><i class="mdi mdi-menu font-24"></i></a></li>
+
+                    </ul>
+                    <!-- ============================================================== -->
+                    <!-- Right side toggle and nav items -->
+                    <!-- ============================================================== -->
+                    <ul class="navbar-nav float-right">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-user-circle fa-2x"></i>
+                                <span class="user-name ml-2">Usuario</span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right user-dd animated">
+                                <a class="dropdown-item" href="javascript:void(0)">
+                                    <i class="fas fa-user mr-1 ml-1"></i> <span class="user-name">Usuario</span>
+                                </a>
+                                <a class="dropdown-item" href="javascript:void(0)">
+                                    <i class="fas fa-briefcase mr-1 ml-1"></i> <span class="user-role">Rol</span>
+                                </a>
+                                <a class="dropdown-item" href="javascript:void(0)">
+                                    <i class="fas fa-cog mr-1 ml-1"></i> Configuración
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="logout()">
+                                    <i class="fas fa-power-off mr-1 ml-1"></i> Cerrar Sesión
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <!-- ============================================================== -->
+        <!-- End Topbar header -->
+        <!-- ============================================================== -->
+        <!-- ============================================================== -->
+        <!-- Left Sidebar - style you can find in sidebar.scss  -->
+        <!-- ============================================================== -->
+        <aside class="left-sidebar" data-sidebarbg="skin5">
+            <div class="scroll-sidebar" id="sidebar-root"></div>
+        </aside>
+        <!-- ============================================================== -->
+        <!-- End Left Sidebar - style you can find in sidebar.scss  -->
+        <!-- ============================================================== -->
+        <!-- ============================================================== -->
+        <!-- Page wrapper  -->
+        <!-- ============================================================== -->
+        <div class="page-wrapper">
+            <!-- ============================================================== -->
+            <!-- Bread crumb and right sidebar toggle -->
+            <!-- ============================================================== -->
+            <div class="page-breadcrumb">
+                <div class="row">
+                    <div class="col-12 d-flex no-block align-items-center">
+                        <h4 class="page-title">Gestión de Recibos de Sueldo</h4>
+                        <div class="ml-auto text-right">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Recibos</li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ============================================================== -->
+            <!-- End Bread crumb and right sidebar toggle -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- Container fluid  -->
+            <!-- ============================================================== -->
+            <div class="container-fluid">
+                <!-- ============================================================== -->
+                <!-- Start Page Content -->
+                <!-- ============================================================== -->
+                <!-- Filtros y controles -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Filtros y Controles</h5>
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <label for="mes-filtro" class="form-label">Mes:</label>
+                                        <select id="mes-filtro" class="form-control">
+                                            <option value="">Todos los meses</option>
+                                            <option value="1">Enero</option>
+                                            <option value="2">Febrero</option>
+                                            <option value="3">Marzo</option>
+                                            <option value="4">Abril</option>
+                                            <option value="5">Mayo</option>
+                                            <option value="6">Junio</option>
+                                            <option value="7">Julio</option>
+                                            <option value="8">Agosto</option>
+                                            <option value="9">Septiembre</option>
+                                            <option value="10">Octubre</option>
+                                            <option value="11">Noviembre</option>
+                                            <option value="12">Diciembre</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="año-filtro" class="form-label">Año:</label>
+                                        <select id="año-filtro" class="form-control">
+                                            <option value="">Todos los años</option>
+                                            <option value="2024">2024</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2026">2026</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="empleado-filtro" class="form-label">Empleado:</label>
+                                        <select id="empleado-filtro" class="form-control">
+                                            <option value="">Todos los empleados</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="estado-filtro" class="form-label">Estado:</label>
+                                        <select id="estado-filtro" class="form-control">
+                                            <option value="">Todos los estados</option>
+                                            <option value="generado">Generado</option>
+                                            <option value="firmado">Firmado</option>
+                                            <option value="aprobado">Aprobado</option>
+                                            <option value="publicado">Publicado</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="periodo-filtro" class="form-label">Período:</label>
+                                        <select id="periodo-filtro" class="form-control">
+                                            <option value="">Todos</option>
+                                            <option value="actual">Período Actual</option>
+                                            <option value="anterior">Período Anterior</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <button id="aplicar-filtros" class="btn btn-primary">
+                                            <i class="fas fa-filter"></i> Aplicar Filtros
+                                        </button>
+                                        <button id="limpiar-filtros" class="btn btn-secondary">
+                                            <i class="fas fa-times"></i> Limpiar
+                                        </button>
+                                        <button id="generar-recibos" class="btn btn-success">
+                                            <i class="fas fa-plus"></i> Generar Recibos
+                                        </button>
+                                        <button id="exportar-csv" class="btn btn-info">
+                                            <i class="fas fa-download"></i> Exportar CSV
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen de estadísticas -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="total-recibos">0</h4>
+                                        <p class="mb-0">Total Recibos</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-file-invoice-dollar fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="recibos-publicados">0</h4>
+                                        <p class="mb-0">Publicados</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-check-circle fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="recibos-pendientes">0</h4>
+                                        <p class="mb-0">Pendientes</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-clock fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="total-neto">$0</h4>
+                                        <p class="mb-0">Total Neto</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-dollar-sign fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de recibos -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Lista de Recibos de Sueldo</h5>
+                                <div class="table-responsive">
+                                    <table id="recibos-table" class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                    <label class="customcheckbox m-b-20">
+                                                        <input type="checkbox" id="mainCheckbox" />
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </th>
+                                                <th>ID</th>
+                                                <th>Empleado</th>
+                                                <th>Período</th>
+                                                <th>Sueldo Bruto</th>
+                                                <th>Bonificaciones</th>
+                                                <th>Descuentos</th>
+                                                <th>Impuestos</th>
+                                                <th>Sueldo Neto</th>
+                                                <th>Estado</th>
+                                                <th>Workflow</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Los datos se cargarán dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ============================================================== -->
+                <!-- End PAge Content -->
+                <!-- ============================================================== -->
+                <!-- ============================================================== -->
+                <!-- Right sidebar -->
+                <!-- ============================================================== -->
+                <!-- .right-sidebar -->
+                <!-- ============================================================== -->
+                <!-- End Right sidebar -->
+                <!-- ============================================================== -->
+            </div>
+            <!-- ============================================================== -->
+            <!-- End Container fluid  -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- footer -->
+            <!-- ============================================================== -->
+            <footer class="footer text-center">
+                Sistema de Gestión RRHH - Chango_ADM
+            </footer>
+            <!-- ============================================================== -->
+            <!-- End footer -->
+            <!-- ============================================================== -->
+        </div>
+        <!-- ============================================================== -->
+        <!-- End Page wrapper  -->
+        <!-- ============================================================== -->
+    </div>
+    <!-- ============================================================== -->
+    <!-- End Wrapper -->
+    <!-- ============================================================== -->
+    <!-- ============================================================== -->
+    <!-- All Jquery -->
+    <!-- ============================================================== -->
+    <script src="assets/libs/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap tether Core JavaScript -->
+    <script src="assets/libs/popper.js/dist/umd/popper.min.js"></script>
+    <script src="assets/libs/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- slimscrollbar scrollbar JavaScript -->
+    <script src="assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js"></script>
+    <script src="assets/extra-libs/sparkline/sparkline.js"></script>
+    <!--Wave Effects -->
+    <script src="dist/js/waves.js"></script>
+    <!--Menu sidebar -->
+    <script src="dist/js/sidebarmenu.js"></script>
+    <!--Custom JavaScript -->
+    <script src="dist/js/custom.min.js"></script>
+    <!-- this page js -->
+    <script src="assets/extra-libs/multicheck/datatable-checkbox-init.js"></script>
+    <script src="assets/extra-libs/multicheck/jquery.multicheck.js"></script>
+    <script src="assets/extra-libs/DataTables/datatables.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <script>
+        class RecibosUI {
+            constructor() {
+                this.apiBase = 'http://localhost:8000/api';
+                this.dataTable = null;
+                this.recibos = [];
+                this.empleados = [];
+                this.init();
+            }
+
+            async init() {
+                await this.loadEmpleados();
+                this.setupEventListeners();
+                this.setupDataTable();
+                await this.loadRecibos();
+                this.updateStats();
+            }
+
+            async loadEmpleados() {
+                try {
+                    const response = await fetch(`${this.apiBase}/empleados?size=1000`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const result = await response.json();
+                    if (result.success) {
+                        this.empleados = result.data.empleados;
+                        this.populateEmpleadosFilter();
+                    } else {
+                        console.error('Error en respuesta:', result.error);
+                    }
+                } catch (error) {
+                    console.error('Error cargando empleados:', error);
+                    alert('Error al cargar empleados. Verifique que el servidor esté funcionando.');
+                }
+            }
+
+            populateEmpleadosFilter() {
+                const select = document.getElementById('empleado-filtro');
+                select.innerHTML = '<option value="">Todos los empleados</option>';
+                
+                this.empleados.forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.textContent = `${emp.nombre} ${emp.apellido}`;
+                    select.appendChild(option);
+                });
+            }
+
+            setupEventListeners() {
+                document.getElementById('aplicar-filtros').addEventListener('click', () => this.loadRecibos());
+                document.getElementById('limpiar-filtros').addEventListener('click', () => this.clearFilters());
+                document.getElementById('generar-recibos').addEventListener('click', () => this.showGenerarModal());
+                document.getElementById('exportar-csv').addEventListener('click', () => this.exportCSV());
+                
+                // Establecer valores por defecto
+                const currentDate = new Date();
+                document.getElementById('mes-filtro').value = currentDate.getMonth() + 1;
+                document.getElementById('año-filtro').value = currentDate.getFullYear();
+            }
+
+            setupDataTable() {
+                this.dataTable = $('#recibos-table').DataTable({
+                    pageLength: 25,
+                    order: [[1, 'desc']], // Ordenar por ID descendente
+                    columnDefs: [
+                        { orderable: false, targets: [0, 10, 11] }, // Checkbox, workflow y acciones no ordenables
+                        { width: '50px', targets: 0 }, // Checkbox más pequeño
+                        { width: '120px', targets: 11 } // Acciones más pequeño
+                    ],
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+                    }
+                });
+            }
+
+            async loadRecibos() {
+                try {
+                    const mes = document.getElementById('mes-filtro').value;
+                    const año = document.getElementById('año-filtro').value;
+                    const empleado = document.getElementById('empleado-filtro').value;
+                    const estado = document.getElementById('estado-filtro').value;
+
+                    let url = `${this.apiBase}/recibos?size=1000`;
+                    if (mes) url += `&mes=${mes}`;
+                    if (año) url += `&año=${año}`;
+                    if (empleado) url += `&empleado_id=${empleado}`;
+                    if (estado) url += `&estado=${estado}`;
+
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.recibos = result.data.recibos;
+                        this.renderRecibos();
+                        this.updateStats();
+                    } else {
+                        console.error('Error en respuesta:', result.error);
+                        alert('Error al cargar recibos: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error cargando recibos:', error);
+                    alert('Error al cargar recibos. Verifique que el servidor esté funcionando.');
+                }
+            }
+
+            renderRecibos() {
+                this.dataTable.clear();
+                
+                this.recibos.forEach(recibo => {
+                    const empleado = this.empleados.find(e => e.id === recibo.empleado_id);
+                    const empleadoNombre = empleado ? `${empleado.nombre} ${empleado.apellido}` : 'Empleado no encontrado';
+                    
+                    const row = [
+                        `<label class="customcheckbox">
+                            <input type="checkbox" class="listCheckbox" value="${recibo.id}" />
+                            <span class="checkmark"></span>
+                        </label>`,
+                        recibo.id,
+                        empleadoNombre,
+                        `${this.getMesNombre(recibo.mes)} ${recibo.año}`,
+                        `$${parseFloat(recibo.sueldo_bruto).toFixed(2)}`,
+                        `$${parseFloat(recibo.bonificaciones || 0).toFixed(2)}`,
+                        `$${parseFloat(recibo.descuentos || 0).toFixed(2)}`,
+                        `$${parseFloat(recibo.impuestos || 0).toFixed(2)}`,
+                        `$${parseFloat(recibo.sueldo_neto).toFixed(2)}`,
+                        this.getEstadoBadge(recibo.estado),
+                        this.getWorkflowSteps(recibo.estado),
+                        this.getAccionesButtons(recibo)
+                    ];
+                    
+                    this.dataTable.row.add(row);
+                });
+                
+                this.dataTable.draw();
+            }
+
+            getMesNombre(mes) {
+                const meses = [
+                    '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                ];
+                return meses[mes] || mes;
+            }
+
+            getEstadoBadge(estado) {
+                const badges = {
+                    'generado': 'badge-generado',
+                    'firmado': 'badge-firmado',
+                    'aprobado': 'badge-aprobado',
+                    'publicado': 'badge-publicado'
+                };
+                return `<span class="badge ${badges[estado] || 'badge-secondary'}">${estado.toUpperCase()}</span>`;
+            }
+
+            getWorkflowSteps(estado) {
+                const steps = ['G', 'F', 'A', 'P'];
+                const estados = ['generado', 'firmado', 'aprobado', 'publicado'];
+                const currentIndex = estados.indexOf(estado);
+                
+                return steps.map((step, index) => {
+                    const isActive = index <= currentIndex;
+                    return `<span class="workflow-step ${isActive ? 'active' : 'inactive'}">${step}</span>`;
+                }).join('');
+            }
+
+            getAccionesButtons(recibo) {
+                let buttons = '';
+                
+                // Botón de ver detalles
+                buttons += `<button class="btn btn-sm btn-info" onclick="recibosUI.viewRecibo(${recibo.id})" title="Ver">
+                    <i class="fas fa-eye"></i>
+                </button>`;
+                
+                // Botones según el estado
+                switch (recibo.estado) {
+                    case 'generado':
+                        buttons += `<button class="btn btn-sm btn-warning" onclick="recibosUI.firmarRecibo(${recibo.id})" title="Firmar">
+                            <i class="fas fa-signature"></i>
+                        </button>`;
+                        break;
+                    case 'firmado':
+                        buttons += `<button class="btn btn-sm btn-success" onclick="recibosUI.aprobarRecibo(${recibo.id})" title="Aprobar">
+                            <i class="fas fa-check"></i>
+                        </button>`;
+                        break;
+                    case 'aprobado':
+                        buttons += `<button class="btn btn-sm btn-primary" onclick="recibosUI.publicarRecibo(${recibo.id})" title="Publicar">
+                            <i class="fas fa-upload"></i>
+                        </button>`;
+                        break;
+                    case 'publicado':
+                        buttons += `<button class="btn btn-sm btn-secondary" onclick="recibosUI.descargarRecibo(${recibo.id})" title="Descargar">
+                            <i class="fas fa-download"></i>
+                        </button>`;
+                        break;
+                }
+                
+                return buttons;
+            }
+
+            updateStats() {
+                const totalRecibos = this.recibos.length;
+                const recibosPublicados = this.recibos.filter(r => r.estado === 'publicado').length;
+                const recibosPendientes = this.recibos.filter(r => r.estado !== 'publicado').length;
+                const totalNeto = this.recibos.reduce((sum, r) => sum + parseFloat(r.sueldo_neto || 0), 0);
+
+                document.getElementById('total-recibos').textContent = totalRecibos;
+                document.getElementById('recibos-publicados').textContent = recibosPublicados;
+                document.getElementById('recibos-pendientes').textContent = recibosPendientes;
+                document.getElementById('total-neto').textContent = `$${totalNeto.toFixed(2)}`;
+            }
+
+            clearFilters() {
+                const currentDate = new Date();
+                document.getElementById('mes-filtro').value = currentDate.getMonth() + 1;
+                document.getElementById('año-filtro').value = currentDate.getFullYear();
+                document.getElementById('empleado-filtro').value = '';
+                document.getElementById('estado-filtro').value = '';
+                document.getElementById('periodo-filtro').value = '';
+                this.loadRecibos();
+            }
+
+            showGenerarModal() {
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.id = 'generarRecibosModal';
+                modal.innerHTML = `
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Generar Recibos de Sueldo</h5>
+                                <button type="button" class="close" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="generarRecibosForm">
+                                    <div class="form-group">
+                                        <label>Mes:</label>
+                                        <select class="form-control" id="generar-mes" required>
+                                            <option value="">Seleccionar mes</option>
+                                            <option value="1">Enero</option>
+                                            <option value="2">Febrero</option>
+                                            <option value="3">Marzo</option>
+                                            <option value="4">Abril</option>
+                                            <option value="5">Mayo</option>
+                                            <option value="6">Junio</option>
+                                            <option value="7">Julio</option>
+                                            <option value="8">Agosto</option>
+                                            <option value="9">Septiembre</option>
+                                            <option value="10">Octubre</option>
+                                            <option value="11">Noviembre</option>
+                                            <option value="12">Diciembre</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Año:</label>
+                                        <select class="form-control" id="generar-año" required>
+                                            <option value="">Seleccionar año</option>
+                                            <option value="2024">2024</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2026">2026</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Empleados:</label>
+                                        <select class="form-control" id="generar-empleados" multiple>
+                                            <option value="todos">Todos los empleados</option>
+                                        </select>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-primary" onclick="recibosUI.generarRecibos()">Generar Recibos</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Poblar empleados
+                const empleadosSelect = document.getElementById('generar-empleados');
+                this.empleados.forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.textContent = `${emp.nombre} ${emp.apellido}`;
+                    empleadosSelect.appendChild(option);
+                });
+                
+                // Establecer valores por defecto
+                const currentDate = new Date();
+                document.getElementById('generar-mes').value = currentDate.getMonth() + 1;
+                document.getElementById('generar-año').value = currentDate.getFullYear();
+                
+                $(modal).modal('show');
+                
+                // Limpiar modal cuando se cierre
+                $(modal).on('hidden.bs.modal', function() {
+                    document.body.removeChild(modal);
+                });
+            }
+
+            async generarRecibos() {
+                try {
+                    const mes = document.getElementById('generar-mes').value;
+                    const año = document.getElementById('generar-año').value;
+                    const empleados = Array.from(document.getElementById('generar-empleados').selectedOptions).map(opt => opt.value);
+                    
+                    if (!mes || !año) {
+                        alert('Debe seleccionar mes y año');
+                        return;
+                    }
+                    
+                    const data = {
+                        mes: parseInt(mes),
+                        año: parseInt(año),
+                        empleados: empleados.includes('todos') ? [] : empleados
+                    };
+                    
+                    const response = await fetch(`${this.apiBase}/recibos/generar`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert(`Se generaron ${result.data.recibos_generados} recibos exitosamente`);
+                        $('#generarRecibosModal').modal('hide');
+                        this.loadRecibos();
+                    } else {
+                        alert('Error al generar recibos: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error generando recibos:', error);
+                    alert('Error al generar los recibos');
+                }
+            }
+
+            async firmarRecibo(reciboId) {
+                try {
+                    const response = await fetch(`${this.apiBase}/recibos/${reciboId}/firmar`, {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Recibo firmado exitosamente');
+                        this.loadRecibos();
+                    } else {
+                        alert('Error al firmar recibo: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error firmando recibo:', error);
+                    alert('Error al firmar el recibo');
+                }
+            }
+
+            async aprobarRecibo(reciboId) {
+                try {
+                    const response = await fetch(`${this.apiBase}/recibos/${reciboId}/aprobar`, {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Recibo aprobado exitosamente');
+                        this.loadRecibos();
+                    } else {
+                        alert('Error al aprobar recibo: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error aprobando recibo:', error);
+                    alert('Error al aprobar el recibo');
+                }
+            }
+
+            async publicarRecibo(reciboId) {
+                try {
+                    const response = await fetch(`${this.apiBase}/recibos/${reciboId}/publicar`, {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Recibo publicado exitosamente');
+                        this.loadRecibos();
+                    } else {
+                        alert('Error al publicar recibo: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error publicando recibo:', error);
+                    alert('Error al publicar el recibo');
+                }
+            }
+
+            async descargarRecibo(reciboId) {
+                try {
+                    const response = await fetch(`${this.apiBase}/recibos/${reciboId}/descargar`);
+                    
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `recibo_${reciboId}.pdf`;
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        const result = await response.json();
+                        alert('Error al descargar recibo: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error descargando recibo:', error);
+                    alert('Error al descargar el recibo');
+                }
+            }
+
+            viewRecibo(reciboId) {
+                const recibo = this.recibos.find(r => r.id === reciboId);
+                if (recibo) {
+                    const empleado = this.empleados.find(e => e.id === recibo.empleado_id);
+                    const empleadoNombre = empleado ? `${empleado.nombre} ${empleado.apellido}` : 'Empleado no encontrado';
+                    
+                    alert(`Detalles del Recibo:\n\n` +
+                          `ID: ${recibo.id}\n` +
+                          `Empleado: ${empleadoNombre}\n` +
+                          `Período: ${this.getMesNombre(recibo.mes)} ${recibo.año}\n` +
+                          `Sueldo Bruto: $${parseFloat(recibo.sueldo_bruto).toFixed(2)}\n` +
+                          `Bonificaciones: $${parseFloat(recibo.bonificaciones || 0).toFixed(2)}\n` +
+                          `Descuentos: $${parseFloat(recibo.descuentos || 0).toFixed(2)}\n` +
+                          `Impuestos: $${parseFloat(recibo.impuestos || 0).toFixed(2)}\n` +
+                          `Sueldo Neto: $${parseFloat(recibo.sueldo_neto).toFixed(2)}\n` +
+                          `Estado: ${recibo.estado.toUpperCase()}\n` +
+                          `Fecha Generación: ${recibo.fecha_generacion || 'No especificada'}`);
+                }
+            }
+
+            async exportCSV() {
+                try {
+                    const mes = document.getElementById('mes-filtro').value;
+                    const año = document.getElementById('año-filtro').value;
+                    const empleado = document.getElementById('empleado-filtro').value;
+                    const estado = document.getElementById('estado-filtro').value;
+
+                    let url = `${this.apiBase}/recibos/export`;
+                    const params = new URLSearchParams();
+                    if (mes) params.append('mes', mes);
+                    if (año) params.append('año', año);
+                    if (empleado) params.append('empleado_id', empleado);
+                    if (estado) params.append('estado', estado);
+                    
+                    if (params.toString()) {
+                        url += '?' + params.toString();
+                    }
+
+                    const response = await fetch(url);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const blob = new Blob([result.data], { type: 'text/csv' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `recibos_${mes || 'todos'}_${año || 'todos'}.csv`;
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    }
+                } catch (error) {
+                    console.error('Error exportando CSV:', error);
+                    alert('Error al exportar el archivo CSV');
+                }
+            }
+        }
+
+        // Inicializar cuando el DOM esté listo
+        let recibosUI;
+        document.addEventListener('DOMContentLoaded', function() {
+            recibosUI = new RecibosUI();
+            
+            // Update user info in UI
+            if (authManager) {
+                authManager.updateUserInfo();
+            }
+        });
+    </script>
+
+    <!-- Authentication -->
+    <script src="js/auth.js"></script>
+
+    <!-- Load unified sidebar -->
+    <script>
+      fetch('partials/sidebar.html', { cache: 'no-store' })
+        .then(r => r.text())
+        .then(html => {
+          const root = document.getElementById('sidebar-root');
+          if (root) {
+            root.innerHTML = html;
+            const page = (location.pathname.split('/').pop() || 'index.html');
+            root.querySelectorAll('#sidebarnav a').forEach(a => {
+              if (a.getAttribute('href') === page) {
+                a.classList.add('active');
+                if (a.parentElement) a.parentElement.classList.add('selected');
+              }
+            });
+          }
+        })
+        .catch(console.error);
+    </script>
+
 </body>
+
 </html>
 
 

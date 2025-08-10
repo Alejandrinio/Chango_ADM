@@ -359,6 +359,100 @@ async def get_empleado(empleado_id: int, db = Depends(get_db)):
             "error": str(e)
         }
 
+@app.post("/api/admin/login")
+async def login_admin(login_data: Dict[str, Any], db = Depends(get_db)):
+    """Login de administrador"""
+    try:
+        username = login_data.get('username')
+        password = login_data.get('password')
+        
+        if not username or not password:
+            return {
+                "success": False,
+                "error": "Username y contraseña son requeridos"
+            }
+        
+        # Por ahora, validación simple para demo
+        # En producción, esto debería validar contra la tabla usuarios con rol_sistema = 'admin'
+        if username == "admin" and password == "admin123":
+            return {
+                "success": True,
+                "data": {
+                    "id": 1,
+                    "nombre": "Administrador",
+                    "apellido": "Sistema",
+                    "rol": "Administrador",
+                    "username": "admin",
+                    "estado": "activo"
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Credenciales de administrador incorrectas"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.post("/api/empleados/login")
+async def login_empleado(login_data: Dict[str, Any], db = Depends(get_db)):
+    """Login de empleado por username"""
+    try:
+        username = login_data.get('username')
+        password = login_data.get('password')
+        
+        if not username or not password:
+            return {
+                "success": False,
+                "error": "Username y contraseña son requeridos"
+            }
+        
+        # Buscar usuario por username
+        usuario = db.execute(
+            text("""
+                SELECT u.id, u.empleado_id, u.username, u.password_hash, u.rol_sistema,
+                       e.nombre, e.apellido, e.rol as rol_empleado, e.estado
+                FROM usuarios u
+                JOIN empleados e ON u.empleado_id = e.id
+                WHERE u.username = :username AND e.estado = 'activo' AND u.activo = 1
+            """),
+            {"username": username}
+        ).fetchone()
+        
+        if not usuario:
+            return {
+                "success": False,
+                "error": "Usuario no encontrado o empleado inactivo"
+            }
+        
+        # Por ahora, validación simple (en producción usar bcrypt)
+        # La contraseña en la BD está hasheada con bcrypt
+        if password != "password":  # Contraseña por defecto para demo
+            return {
+                "success": False,
+                "error": "Contraseña incorrecta"
+            }
+        
+        return {
+            "success": True,
+            "data": {
+                "id": usuario.empleado_id,
+                "nombre": usuario.nombre,
+                "apellido": usuario.apellido,
+                "rol": usuario.rol_empleado,
+                "username": usuario.username,
+                "estado": usuario.estado
+            }
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 @app.post("/api/empleados")
 async def create_empleado(empleado_data: Dict[str, Any], db = Depends(get_db)):
     """Crear nuevo empleado"""
@@ -998,6 +1092,8 @@ async def export_fichajes_csv(
 async def get_recibos(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=1000),
+    mes: Optional[int] = None,
+    año: Optional[int] = None,
     periodo: Optional[str] = None,
     estado: Optional[str] = None,
     empleado_id: Optional[int] = None,
@@ -1020,13 +1116,23 @@ async def get_recibos(
         
         params = {}
         
+        # Filtros individuales de mes y año
+        if mes:
+            query = text(str(query) + " AND r.mes = :mes")
+            params['mes'] = mes
+        
+        if año:
+            query = text(str(query) + " AND r.año = :año")
+            params['año'] = año
+        
+        # Filtro de periodo (mantener compatibilidad)
         if periodo:
             # Convertir periodo YYYY-MM a mes y año
             try:
-                año, mes = periodo.split('-')
-                query = text(str(query) + " AND r.año = :año AND r.mes = :mes")
-                params['año'] = int(año)
-                params['mes'] = int(mes)
+                año_periodo, mes_periodo = periodo.split('-')
+                query = text(str(query) + " AND r.año = :año_periodo AND r.mes = :mes_periodo")
+                params['año_periodo'] = int(año_periodo)
+                params['mes_periodo'] = int(mes_periodo)
             except:
                 pass
         
@@ -1059,13 +1165,16 @@ async def get_recibos(
                 "recibos": [
                     {
                         "id": r.id,
+                        "empleado_id": r.empleado_id,
                         "empleado": f"{r.nombre} {r.apellido}",
                         "rol": r.rol,
+                        "mes": r.mes,
+                        "año": r.año,
                         "periodo": f"{r.año}-{r.mes:02d}",
-                        "sueldo_base": float(r.sueldo_base),
-                        "horas_extras": float(r.horas_extras) if r.horas_extras else 0,
+                        "sueldo_bruto": float(r.sueldo_base),  # Cambiar a sueldo_bruto para el frontend
                         "bonificaciones": float(r.bonificaciones) if r.bonificaciones else 0,
                         "descuentos": float(r.descuentos) if r.descuentos else 0,
+                        "impuestos": float(r.horas_extras) if r.horas_extras else 0,  # Usar horas_extras como impuestos
                         "sueldo_neto": float(r.sueldo_neto),
                         "estado": r.estado,
                         "fecha_generacion": str(r.fecha_generacion) if r.fecha_generacion else None,
@@ -1123,12 +1232,44 @@ async def generar_recibo(recibo_data: Dict[str, Any], db = Depends(get_db)):
         }
 
 @app.post("/api/recibos/{recibo_id}/firmar")
-async def firmar_recibo(recibo_id: int, db = Depends(get_db)):
+async def firmar_recibo(recibo_id: int, firma_data: Dict[str, Any] = None, db = Depends(get_db)):
     """Firmar recibo (empleado)"""
     try:
-        db.execute(
-            text("UPDATE recibos_sueldo SET estado = 'firmado' WHERE id = :id"),
+        # Verificar que el recibo existe y está en estado 'generado'
+        recibo = db.execute(
+            text("SELECT id, estado FROM recibos_sueldo WHERE id = :id"),
             {"id": recibo_id}
+        ).fetchone()
+        
+        if not recibo:
+            return {
+                "success": False,
+                "error": "Recibo no encontrado"
+            }
+        
+        if recibo.estado != 'generado':
+            return {
+                "success": False,
+                "error": f"El recibo debe estar en estado 'generado', actualmente está '{recibo.estado}'"
+            }
+        
+        # Actualizar estado y agregar información de firma
+        update_data = {
+            "id": recibo_id,
+            "estado": "firmado",
+            "fecha_firma_empleado": datetime.now(),
+            "firmado_por": firma_data.get('firmado_por', 'Empleado') if firma_data else 'Empleado'
+        }
+        
+        db.execute(
+            text("""
+                UPDATE recibos_sueldo 
+                SET estado = :estado, 
+                    fecha_firma_empleado = :fecha_firma_empleado,
+                    firmado_por = :firmado_por
+                WHERE id = :id
+            """),
+            update_data
         )
         db.commit()
         
@@ -1144,12 +1285,44 @@ async def firmar_recibo(recibo_id: int, db = Depends(get_db)):
         }
 
 @app.post("/api/recibos/{recibo_id}/aprobar")
-async def aprobar_recibo(recibo_id: int, db = Depends(get_db)):
+async def aprobar_recibo(recibo_id: int, aprobacion_data: Dict[str, Any] = None, db = Depends(get_db)):
     """Aprobar recibo (supervisor/RRHH)"""
     try:
-        db.execute(
-            text("UPDATE recibos_sueldo SET estado = 'aprobado' WHERE id = :id"),
+        # Verificar que el recibo existe y está en estado 'firmado'
+        recibo = db.execute(
+            text("SELECT id, estado FROM recibos_sueldo WHERE id = :id"),
             {"id": recibo_id}
+        ).fetchone()
+        
+        if not recibo:
+            return {
+                "success": False,
+                "error": "Recibo no encontrado"
+            }
+        
+        if recibo.estado != 'firmado':
+            return {
+                "success": False,
+                "error": f"El recibo debe estar en estado 'firmado', actualmente está '{recibo.estado}'"
+            }
+        
+        # Actualizar estado y agregar información de aprobación
+        update_data = {
+            "id": recibo_id,
+            "estado": "aprobado",
+            "fecha_aprobacion_supervisor": datetime.now(),
+            "aprobado_por": aprobacion_data.get('aprobado_por', 'Supervisor') if aprobacion_data else 'Supervisor'
+        }
+        
+        db.execute(
+            text("""
+                UPDATE recibos_sueldo 
+                SET estado = :estado, 
+                    fecha_aprobacion_supervisor = :fecha_aprobacion_supervisor,
+                    aprobado_por = :aprobado_por
+                WHERE id = :id
+            """),
+            update_data
         )
         db.commit()
         
@@ -1165,12 +1338,44 @@ async def aprobar_recibo(recibo_id: int, db = Depends(get_db)):
         }
 
 @app.post("/api/recibos/{recibo_id}/publicar")
-async def publicar_recibo(recibo_id: int, db = Depends(get_db)):
-    """Publicar recibo"""
+async def publicar_recibo(recibo_id: int, publicacion_data: Dict[str, Any] = None, db = Depends(get_db)):
+    """Publicar recibo (RRHH)"""
     try:
-        db.execute(
-            text("UPDATE recibos_sueldo SET estado = 'publicado' WHERE id = :id"),
+        # Verificar que el recibo existe y está en estado 'aprobado'
+        recibo = db.execute(
+            text("SELECT id, estado FROM recibos_sueldo WHERE id = :id"),
             {"id": recibo_id}
+        ).fetchone()
+        
+        if not recibo:
+            return {
+                "success": False,
+                "error": "Recibo no encontrado"
+            }
+        
+        if recibo.estado != 'aprobado':
+            return {
+                "success": False,
+                "error": f"El recibo debe estar en estado 'aprobado', actualmente está '{recibo.estado}'"
+            }
+        
+        # Actualizar estado y agregar información de publicación
+        update_data = {
+            "id": recibo_id,
+            "estado": "publicado",
+            "fecha_publicacion": datetime.now(),
+            "publicado_por": publicacion_data.get('publicado_por', 'RRHH') if publicacion_data else 'RRHH'
+        }
+        
+        db.execute(
+            text("""
+                UPDATE recibos_sueldo 
+                SET estado = :estado, 
+                    fecha_publicacion = :fecha_publicacion,
+                    publicado_por = :publicado_por
+                WHERE id = :id
+            """),
+            update_data
         )
         db.commit()
         
@@ -1218,6 +1423,78 @@ async def descargar_recibo(recibo_id: int, db = Depends(get_db)):
         }
     except HTTPException:
         raise
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/recibos/export")
+async def export_recibos_csv(
+    mes: Optional[int] = None,
+    año: Optional[int] = None,
+    empleado_id: Optional[int] = None,
+    estado: Optional[str] = None,
+    db = Depends(get_db)
+):
+    """Exportar recibos a CSV"""
+    try:
+        # Construir query base
+        query = text("""
+            SELECT 
+                r.id,
+                e.nombre,
+                e.apellido,
+                e.rol,
+                r.mes,
+                r.año,
+                r.sueldo_bruto,
+                r.bonificaciones,
+                r.descuentos,
+                r.impuestos,
+                r.sueldo_neto,
+                r.estado,
+                r.fecha_generacion
+            FROM recibos_sueldo r
+            JOIN empleados e ON r.empleado_id = e.id
+            WHERE 1=1
+        """)
+        
+        params = {}
+        
+        if mes:
+            query = text(str(query) + " AND r.mes = :mes")
+            params['mes'] = mes
+        
+        if año:
+            query = text(str(query) + " AND r.año = :año")
+            params['año'] = año
+        
+        if empleado_id:
+            query = text(str(query) + " AND r.empleado_id = :empleado_id")
+            params['empleado_id'] = empleado_id
+        
+        if estado:
+            query = text(str(query) + " AND r.estado = :estado")
+            params['estado'] = estado
+        
+        query = text(str(query) + " ORDER BY r.año DESC, r.mes DESC, e.nombre, e.apellido")
+        
+        recibos = db.execute(query, params).fetchall()
+        
+        # Generar CSV
+        csv_content = "ID,Empleado,Rol,Mes,Año,Sueldo Bruto,Bonificaciones,Descuentos,Impuestos,Sueldo Neto,Estado,Fecha Generación\n"
+        
+        for recibo in recibos:
+            csv_content += f"{recibo.id},{recibo.nombre} {recibo.apellido},{recibo.rol},{recibo.mes},{recibo.año},"
+            csv_content += f"{recibo.sueldo_bruto},{recibo.bonificaciones or 0},{recibo.descuentos or 0},"
+            csv_content += f"{recibo.impuestos or 0},{recibo.sueldo_neto},{recibo.estado},"
+            csv_content += f"{recibo.fecha_generacion or ''}\n"
+        
+        return {
+            "success": True,
+            "data": csv_content
+        }
     except Exception as e:
         return {
             "success": False,
@@ -1625,6 +1902,470 @@ async def debug_asistencia_semanal(
                     } for row in total_por_tipo
                 ]
             }
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+# ============================================================================
+# ENDPOINTS DE VACACIONES
+# ============================================================================
+
+@app.get("/api/vacaciones")
+async def get_vacaciones(
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=1000),
+    empleado_id: Optional[int] = None,
+    estado: Optional[str] = None,
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None,
+    db = Depends(get_db)
+):
+    """Obtener lista de solicitudes de vacaciones con filtros y paginación"""
+    try:
+        offset = (page - 1) * size
+        
+        # Construir la consulta base
+        query = """
+            SELECT 
+                v.id,
+                v.empleado_id,
+                v.fecha_inicio,
+                v.fecha_fin,
+                v.dias_solicitados,
+                v.motivo,
+                v.estado,
+                v.aprobado_por,
+                v.created_at,
+                CONCAT(e.nombre, ' ', e.apellido) as empleado_nombre,
+                CONCAT(ap.nombre, ' ', ap.apellido) as aprobado_por_nombre
+            FROM vacaciones v
+            JOIN empleados e ON v.empleado_id = e.id
+            LEFT JOIN empleados ap ON v.aprobado_por = ap.id
+            WHERE 1=1
+        """
+        
+        # Agregar filtros
+        params = {}
+        if empleado_id:
+            query += " AND v.empleado_id = :empleado_id"
+            params['empleado_id'] = empleado_id
+        
+        if estado:
+            query += " AND v.estado = :estado"
+            params['estado'] = estado
+        
+        if fecha_inicio:
+            query += " AND v.fecha_inicio >= :fecha_inicio"
+            params['fecha_inicio'] = fecha_inicio
+        
+        if fecha_fin:
+            query += " AND v.fecha_fin <= :fecha_fin"
+            params['fecha_fin'] = fecha_fin
+        
+        # Consulta para contar total
+        count_query = f"SELECT COUNT(*) as total FROM ({query}) as subquery"
+        total_result = db.execute(text(count_query), params).fetchone()
+        total = total_result.total if total_result else 0
+        
+        # Agregar paginación y ordenamiento
+        query += " ORDER BY v.created_at DESC LIMIT :size OFFSET :offset"
+        params['size'] = size
+        params['offset'] = offset
+        
+        # Ejecutar consulta principal
+        result = db.execute(text(query), params).fetchall()
+        
+        # Formatear resultados
+        vacaciones = []
+        for row in result:
+            vacaciones.append({
+                "id": row.id,
+                "empleado_id": row.empleado_id,
+                "empleado_nombre": row.empleado_nombre,
+                "fecha_inicio": str(row.fecha_inicio),
+                "fecha_fin": str(row.fecha_fin),
+                "dias_solicitados": row.dias_solicitados,
+                "motivo": row.motivo,
+                "estado": row.estado,
+                "aprobado_por": row.aprobado_por,
+                "aprobado_por_nombre": row.aprobado_por_nombre,
+                "created_at": str(row.created_at) if row.created_at else None
+            })
+        
+        return {
+            "success": True,
+            "data": vacaciones,
+            "pagination": {
+                "page": page,
+                "size": size,
+                "total": total,
+                "pages": (total + size - 1) // size
+            }
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+
+
+
+@app.post("/api/vacaciones")
+async def create_vacacion(vacacion_data: Dict[str, Any], db = Depends(get_db)):
+    """Crear una nueva solicitud de vacaciones"""
+    try:
+        # Validar datos requeridos
+        required_fields = ['empleado_id', 'fecha_inicio', 'fecha_fin', 'dias_solicitados']
+        for field in required_fields:
+            if field not in vacacion_data or not vacacion_data[field]:
+                return {
+                    "success": False,
+                    "error": f"Campo requerido: {field}"
+                }
+        
+        # Verificar que el empleado existe y está activo
+        empleado = db.execute(
+            text("SELECT id, estado FROM empleados WHERE id = :empleado_id"),
+            {"empleado_id": vacacion_data['empleado_id']}
+        ).fetchone()
+        
+        if not empleado:
+            return {
+                "success": False,
+                "error": "Empleado no encontrado"
+            }
+        
+        if empleado.estado != 'activo':
+            return {
+                "success": False,
+                "error": "El empleado debe estar activo para solicitar vacaciones"
+            }
+        
+        # Insertar la solicitud
+        insert_query = """
+            INSERT INTO vacaciones (empleado_id, fecha_inicio, fecha_fin, dias_solicitados, motivo, estado)
+            VALUES (:empleado_id, :fecha_inicio, :fecha_fin, :dias_solicitados, :motivo, 'pendiente')
+        """
+        
+        db.execute(text(insert_query), {
+            "empleado_id": vacacion_data['empleado_id'],
+            "fecha_inicio": vacacion_data['fecha_inicio'],
+            "fecha_fin": vacacion_data['fecha_fin'],
+            "dias_solicitados": vacacion_data['dias_solicitados'],
+            "motivo": vacacion_data.get('motivo', '')
+        })
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Solicitud de vacaciones creada exitosamente"
+        }
+    except Exception as e:
+        db.rollback()
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.patch("/api/vacaciones/{vacacion_id}/cambiar-estado")
+async def cambiar_estado_vacacion(vacacion_id: int, estado_data: Dict[str, Any], db = Depends(get_db)):
+    """Cambiar el estado de una solicitud de vacaciones (aprobar/rechazar)"""
+    try:
+        # Validar datos
+        if 'estado' not in estado_data:
+            return {
+                "success": False,
+                "error": "Estado requerido"
+            }
+        
+        nuevo_estado = estado_data['estado']
+        if nuevo_estado not in ['aprobado', 'rechazado']:
+            return {
+                "success": False,
+                "error": "Estado debe ser 'aprobado' o 'rechazado'"
+            }
+        
+        # Verificar que la solicitud existe y está pendiente
+        vacacion = db.execute(
+            text("SELECT id, estado FROM vacaciones WHERE id = :vacacion_id"),
+            {"vacacion_id": vacacion_id}
+        ).fetchone()
+        
+        if not vacacion:
+            return {
+                "success": False,
+                "error": "Solicitud de vacaciones no encontrada"
+            }
+        
+        if vacacion.estado != 'pendiente':
+            return {
+                "success": False,
+                "error": "Solo se pueden aprobar/rechazar solicitudes pendientes"
+            }
+        
+        # Actualizar el estado
+        update_query = """
+            UPDATE vacaciones 
+            SET estado = :estado, aprobado_por = :aprobado_por
+            WHERE id = :vacacion_id
+        """
+        
+        # Por ahora, usar un ID hardcodeado para el aprobador (en producción sería el usuario logueado)
+        aprobador_id = 1  # ID del administrador
+        
+        db.execute(text(update_query), {
+            "estado": nuevo_estado,
+            "aprobado_por": aprobador_id,
+            "vacacion_id": vacacion_id
+        })
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": f"Solicitud {nuevo_estado} exitosamente"
+        }
+    except Exception as e:
+        db.rollback()
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/vacaciones-stats")
+async def get_vacaciones_estadisticas(db = Depends(get_db)):
+    """Obtener estadísticas de solicitudes de vacaciones"""
+    try:
+        # Estadísticas por estado
+        stats_query = """
+            SELECT 
+                estado,
+                COUNT(*) as cantidad
+            FROM vacaciones
+            GROUP BY estado
+        """
+        
+        result = db.execute(text(stats_query)).fetchall()
+        
+        # Inicializar contadores
+        estadisticas = {
+            "total": 0,
+            "pendientes": 0,
+            "aprobadas": 0,
+            "rechazadas": 0
+        }
+        
+        # Procesar resultados
+        for row in result:
+            estadisticas["total"] += row.cantidad
+            if row.estado == 'pendiente':
+                estadisticas["pendientes"] = row.cantidad
+            elif row.estado == 'aprobado':
+                estadisticas["aprobadas"] = row.cantidad
+            elif row.estado == 'rechazado':
+                estadisticas["rechazadas"] = row.cantidad
+        
+        return {
+            "success": True,
+            "data": estadisticas
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/vacaciones/export")
+async def export_vacaciones_csv(
+    empleado_id: Optional[int] = None,
+    estado: Optional[str] = None,
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None,
+    db = Depends(get_db)
+):
+    """Exportar solicitudes de vacaciones a CSV"""
+    try:
+        # Construir la consulta base
+        query = """
+            SELECT 
+                v.id,
+                CONCAT(e.nombre, ' ', e.apellido) as empleado,
+                v.fecha_inicio,
+                v.fecha_fin,
+                v.dias_solicitados,
+                v.motivo,
+                v.estado,
+                CONCAT(ap.nombre, ' ', ap.apellido) as aprobado_por,
+                v.created_at
+            FROM vacaciones v
+            JOIN empleados e ON v.empleado_id = e.id
+            LEFT JOIN empleados ap ON v.aprobado_por = ap.id
+            WHERE 1=1
+        """
+        
+        # Agregar filtros
+        params = {}
+        if empleado_id:
+            query += " AND v.empleado_id = :empleado_id"
+            params['empleado_id'] = empleado_id
+        
+        if estado:
+            query += " AND v.estado = :estado"
+            params['estado'] = estado
+        
+        if fecha_inicio:
+            query += " AND v.fecha_inicio >= :fecha_inicio"
+            params['fecha_inicio'] = fecha_inicio
+        
+        if fecha_fin:
+            query += " AND v.fecha_fin <= :fecha_fin"
+            params['fecha_fin'] = fecha_fin
+        
+        query += " ORDER BY v.created_at DESC"
+        
+        result = db.execute(text(query), params).fetchall()
+        
+        # Generar CSV
+        import csv
+        import io
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Encabezados
+        writer.writerow([
+            'ID', 'Empleado', 'Fecha Inicio', 'Fecha Fin', 'Días', 
+            'Motivo', 'Estado', 'Aprobado Por', 'Fecha Solicitud'
+        ])
+        
+        # Datos
+        for row in result:
+            writer.writerow([
+                row.id,
+                row.empleado,
+                row.fecha_inicio,
+                row.fecha_fin,
+                row.dias_solicitados,
+                row.motivo or '',
+                row.estado,
+                row.aprobado_por or '',
+                row.created_at
+            ])
+        
+        csv_content = output.getvalue()
+        output.close()
+        
+        from fastapi.responses import StreamingResponse
+        from io import BytesIO
+        
+        return StreamingResponse(
+            iter([csv_content]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=vacaciones.csv"}
+        )
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/vacaciones/{vacacion_id}")
+async def get_vacacion(vacacion_id: int, db = Depends(get_db)):
+    """Obtener una solicitud de vacaciones específica"""
+    try:
+        query = """
+            SELECT 
+                v.id,
+                v.empleado_id,
+                v.fecha_inicio,
+                v.fecha_fin,
+                v.dias_solicitados,
+                v.motivo,
+                v.estado,
+                v.aprobado_por,
+                v.created_at,
+                CONCAT(e.nombre, ' ', e.apellido) as empleado_nombre,
+                CONCAT(ap.nombre, ' ', ap.apellido) as aprobado_por_nombre
+            FROM vacaciones v
+            JOIN empleados e ON v.empleado_id = e.id
+            LEFT JOIN empleados ap ON v.aprobado_por = ap.id
+            WHERE v.id = :vacacion_id
+        """
+        
+        result = db.execute(text(query), {"vacacion_id": vacacion_id}).fetchone()
+        
+        if not result:
+            return {
+                "success": False,
+                "error": "Solicitud de vacaciones no encontrada"
+            }
+        
+        vacacion = {
+            "id": result.id,
+            "empleado_id": result.empleado_id,
+            "empleado_nombre": result.empleado_nombre,
+            "fecha_inicio": str(result.fecha_inicio),
+            "fecha_fin": str(result.fecha_fin),
+            "dias_solicitados": result.dias_solicitados,
+            "motivo": result.motivo,
+            "estado": result.estado,
+            "aprobado_por": result.aprobado_por,
+            "aprobado_por_nombre": result.aprobado_por_nombre,
+            "created_at": str(result.created_at) if result.created_at else None
+        }
+        
+        return {
+            "success": True,
+            "data": vacacion
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/stats-vacaciones")
+async def get_stats_vacaciones(db = Depends(get_db)):
+    """Endpoint temporal para estadísticas de vacaciones"""
+    try:
+        # Estadísticas por estado
+        stats_query = """
+            SELECT 
+                estado,
+                COUNT(*) as cantidad
+            FROM vacaciones
+            GROUP BY estado
+        """
+        
+        result = db.execute(text(stats_query)).fetchall()
+        
+        # Inicializar contadores
+        estadisticas = {
+            "total": 0,
+            "pendientes": 0,
+            "aprobadas": 0,
+            "rechazadas": 0
+        }
+        
+        # Procesar resultados
+        for row in result:
+            estadisticas["total"] += row.cantidad
+            if row.estado == 'pendiente':
+                estadisticas["pendientes"] = row.cantidad
+            elif row.estado == 'aprobado':
+                estadisticas["aprobadas"] = row.cantidad
+            elif row.estado == 'rechazado':
+                estadisticas["rechazadas"] = row.cantidad
+        
+        return {
+            "success": True,
+            "data": estadisticas
         }
     except Exception as e:
         return {
