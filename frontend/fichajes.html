@@ -10,11 +10,38 @@
     <meta name="author" content="">
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon.png">
-    <title>Matrix Template - The Ultimate Multipurpose admin template</title>
+    <title>Chango_ADM - Gestión de Fichajes</title>
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="assets/extra-libs/multicheck/multicheck.css">
     <link href="assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css" rel="stylesheet">
     <link href="dist/css/style.min.css" rel="stylesheet">
+    <style>
+        .badge-normal {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .badge-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .badge-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            margin: 0 2px;
+        }
+    </style>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -89,128 +116,28 @@
                     <!-- ============================================================== -->
                     <ul class="navbar-nav float-left mr-auto">
                         <li class="nav-item d-none d-md-block"><a class="nav-link sidebartoggler waves-effect waves-light" href="javascript:void(0)" data-sidebartype="mini-sidebar"><i class="mdi mdi-menu font-24"></i></a></li>
-                        <!-- ============================================================== -->
-                        <!-- create new -->
-                        <!-- ============================================================== -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                             <span class="d-none d-md-block">Create New <i class="fa fa-angle-down"></i></span>
-                             <span class="d-block d-md-none"><i class="fa fa-plus"></i></span>   
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="#">Action</a>
-                                <a class="dropdown-item" href="#">Another action</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#">Something else here</a>
-                            </div>
-                        </li>
-                        <!-- ============================================================== -->
-                        <!-- Search -->
-                        <!-- ============================================================== -->
-                        <li class="nav-item search-box"> <a class="nav-link waves-effect waves-dark" href="javascript:void(0)"><i class="ti-search"></i></a>
-                            <form class="app-search position-absolute">
-                                <input type="text" class="form-control" placeholder="Search &amp; enter"> <a class="srh-btn"><i class="ti-close"></i></a>
-                            </form>
-                        </li>
+
                     </ul>
                     <!-- ============================================================== -->
                     <!-- Right side toggle and nav items -->
                     <!-- ============================================================== -->
                     <ul class="navbar-nav float-right">
                         <!-- ============================================================== -->
-                        <!-- Comment -->
+                        <!-- User profile -->
                         <!-- ============================================================== -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="mdi mdi-bell font-24"></i>
+                            <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="ti-user font-24"></i>
                             </a>
-                             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="#">Action</a>
-                                <a class="dropdown-item" href="#">Another action</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#">Something else here</a>
-                            </div>
-                        </li>
-                        <!-- ============================================================== -->
-                        <!-- End Comment -->
-                        <!-- ============================================================== -->
-                        <!-- ============================================================== -->
-                        <!-- Messages -->
-                        <!-- ============================================================== -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" id="2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="font-24 mdi mdi-comment-processing"></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right mailbox animated bounceInDown" aria-labelledby="2">
-                                <ul class="list-style-none">
-                                    <li>
-                                        <div class="">
-                                             <!-- Message -->
-                                            <a href="javascript:void(0)" class="link border-top">
-                                                <div class="d-flex no-block align-items-center p-10">
-                                                    <span class="btn btn-success btn-circle"><i class="ti-calendar"></i></span>
-                                                    <div class="m-l-10">
-                                                        <h5 class="m-b-0">Event today</h5> 
-                                                        <span class="mail-desc">Just a reminder that event</span> 
-                                                    </div>
-                                                </div>
-                                            </a>
-                                            <!-- Message -->
-                                            <a href="javascript:void(0)" class="link border-top">
-                                                <div class="d-flex no-block align-items-center p-10">
-                                                    <span class="btn btn-info btn-circle"><i class="ti-settings"></i></span>
-                                                    <div class="m-l-10">
-                                                        <h5 class="m-b-0">Settings</h5> 
-                                                        <span class="mail-desc">You can customize this template</span> 
-                                                    </div>
-                                                </div>
-                                            </a>
-                                            <!-- Message -->
-                                            <a href="javascript:void(0)" class="link border-top">
-                                                <div class="d-flex no-block align-items-center p-10">
-                                                    <span class="btn btn-primary btn-circle"><i class="ti-user"></i></span>
-                                                    <div class="m-l-10">
-                                                        <h5 class="m-b-0">Pavan kumar</h5> 
-                                                        <span class="mail-desc">Just see the my admin!</span> 
-                                                    </div>
-                                                </div>
-                                            </a>
-                                            <!-- Message -->
-                                            <a href="javascript:void(0)" class="link border-top">
-                                                <div class="d-flex no-block align-items-center p-10">
-                                                    <span class="btn btn-danger btn-circle"><i class="fa fa-link"></i></span>
-                                                    <div class="m-l-10">
-                                                        <h5 class="m-b-0">Luanch Admin</h5> 
-                                                        <span class="mail-desc">Just see the my new admin!</span> 
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                        <!-- ============================================================== -->
-                        <!-- End Messages -->
-                        <!-- ============================================================== -->
-
-                        <!-- ============================================================== -->
-                        <!-- User profile and search -->
-                        <!-- ============================================================== -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="assets/images/users/1.jpg" alt="user" class="rounded-circle" width="31"></a>
                             <div class="dropdown-menu dropdown-menu-right user-dd animated">
-                                <a class="dropdown-item" href="javascript:void(0)"><i class="ti-user m-r-5 m-l-5"></i> My Profile</a>
-                                <a class="dropdown-item" href="javascript:void(0)"><i class="ti-wallet m-r-5 m-l-5"></i> My Balance</a>
-                                <a class="dropdown-item" href="javascript:void(0)"><i class="ti-email m-r-5 m-l-5"></i> Inbox</a>
+                                <a class="dropdown-item" href="javascript:void(0)"><i class="ti-user m-r-5 m-l-5"></i> Mi Perfil</a>
+                                <a class="dropdown-item" href="javascript:void(0)"><i class="ti-settings m-r-5 m-l-5"></i> Configuración</a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="javascript:void(0)"><i class="ti-settings m-r-5 m-l-5"></i> Account Setting</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="javascript:void(0)"><i class="fa fa-power-off m-r-5 m-l-5"></i> Logout</a>
-                                <div class="dropdown-divider"></div>
-                                <div class="p-l-30 p-10"><a href="javascript:void(0)" class="btn btn-sm btn-success btn-rounded">View Profile</a></div>
+                                <a class="dropdown-item" href="javascript:void(0)"><i class="fa fa-power-off m-r-5 m-l-5"></i> Cerrar Sesión</a>
                             </div>
                         </li>
                         <!-- ============================================================== -->
-                        <!-- User profile and search -->
+                        <!-- End User profile -->
                         <!-- ============================================================== -->
                     </ul>
                 </div>
@@ -238,12 +165,12 @@
             <div class="page-breadcrumb">
                 <div class="row">
                     <div class="col-12 d-flex no-block align-items-center">
-                        <h4 class="page-title">Tables</h4>
+                        <h4 class="page-title">Gestión de Fichajes</h4>
                         <div class="ml-auto text-right">
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb">
-                                    <li class="breadcrumb-item"><a href="#">Home</a></li>
-                                    <li class="breadcrumb-item active" aria-current="page">Library</li>
+                                    <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Fichajes</li>
                                 </ol>
                             </nav>
                         </div>
@@ -260,43 +187,159 @@
                 <!-- ============================================================== -->
                 <!-- Start Page Content -->
                 <!-- ============================================================== -->
+                <!-- Filtros y controles -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Filtros y Controles</h5>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label for="fecha-filtro" class="form-label">Fecha:</label>
+                                        <input type="date" id="fecha-filtro" class="form-control" value="">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="empleado-filtro" class="form-label">Empleado:</label>
+                                        <select id="empleado-filtro" class="form-control">
+                                            <option value="">Todos los empleados</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="rol-filtro" class="form-label">Rol/Departamento:</label>
+                                        <select id="rol-filtro" class="form-control">
+                                            <option value="">Todos los roles</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="tipo-filtro" class="form-label">Tipo:</label>
+                                        <select id="tipo-filtro" class="form-control">
+                                            <option value="">Todos</option>
+                                            <option value="entrada">Entrada</option>
+                                            <option value="salida">Salida</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <button id="aplicar-filtros" class="btn btn-primary">
+                                            <i class="fas fa-filter"></i> Aplicar Filtros
+                                        </button>
+                                        <button id="limpiar-filtros" class="btn btn-secondary">
+                                            <i class="fas fa-times"></i> Limpiar
+                                        </button>
+                                        <button id="exportar-csv" class="btn btn-success">
+                                            <i class="fas fa-download"></i> Exportar CSV
+                                        </button>
+                                        <button id="detectar-anomalias" class="btn btn-warning">
+                                            <i class="fas fa-exclamation-triangle"></i> Detectar Anomalías
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen de estadísticas -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="total-fichajes">0</h4>
+                                        <p class="mb-0">Total Fichajes</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-clock fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="empleados-presentes">0</h4>
+                                        <p class="mb-0">Presentes</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-check-circle fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="anomalias-detectadas">0</h4>
+                                        <p class="mb-0">Anomalías</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 id="empleados-ausentes">0</h4>
+                                        <p class="mb-0">Ausentes</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-times-circle fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de fichajes -->
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title m-b-0">Static Table</h5>
+                                <h5 class="card-title">Lista de Fichajes</h5>
+                                <div class="table-responsive">
+                                    <table id="fichajes-table" class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                    <label class="customcheckbox m-b-20">
+                                                        <input type="checkbox" id="mainCheckbox" />
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </th>
+                                                <th>Empleado</th>
+                                                <th>Rol</th>
+                                                <th>Fecha</th>
+                                                <th>Hora Entrada</th>
+                                                <th>Hora Salida</th>
+                                                <th>Horas Trabajadas</th>
+                                                <th>Tipo</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Los datos se cargarán dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                            <table class="table">
-                                  <thead>
-                                    <tr>
-                                      <th scope="col">#</th>
-                                      <th scope="col">First</th>
-                                      <th scope="col">Last</th>
-                                      <th scope="col">Handle</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <tr>
-                                      <th scope="row">1</th>
-                                      <td>Mark</td>
-                                      <td>Otto</td>
-                                      <td>@mdo</td>
-                                    </tr>
-                                    <tr>
-                                      <th scope="row">2</th>
-                                      <td>Jacob</td>
-                                      <td>Thornton</td>
-                                      <td>@fat</td>
-                                    </tr>
-                                    <tr>
-                                      <th scope="row">3</th>
-                                      <td>Larry</td>
-                                      <td>the Bird</td>
-                                      <td>@twitter</td>
-                                    </tr>
-                                  </tbody>
-                            </table>
                         </div>
+                    </div>
+                </div>
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="card-title m-b-0">Static Table With Checkboxes</h5>
@@ -936,7 +979,7 @@
             <!-- footer -->
             <!-- ============================================================== -->
             <footer class="footer text-center">
-                All Rights Reserved by Matrix-admin. Designed and Developed by <a href="https://wrappixel.com">WrapPixel</a>.
+                Sistema de Gestión RRHH - Chango_ADM
             </footer>
             <!-- ============================================================== -->
             <!-- End footer -->
@@ -969,11 +1012,649 @@
     <script src="assets/extra-libs/multicheck/datatable-checkbox-init.js"></script>
     <script src="assets/extra-libs/multicheck/jquery.multicheck.js"></script>
     <script src="assets/extra-libs/DataTables/datatables.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
     <script>
-        /****************************************
-         *       Basic Table                   *
-         ****************************************/
-        $('#zero_config').DataTable();
+        class FichajesUI {
+            constructor() {
+                this.apiBase = 'http://localhost:8000/api';
+                this.dataTable = null;
+                this.fichajes = [];
+                this.empleados = [];
+                this.init();
+            }
+
+            async init() {
+                await this.loadEmpleados();
+                this.setupEventListeners();
+                this.setupDataTable();
+                await this.loadFichajes();
+                this.updateStats();
+            }
+
+            async loadEmpleados() {
+                try {
+                    const response = await fetch(`${this.apiBase}/empleados?size=1000`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const result = await response.json();
+                    if (result.success) {
+                        this.empleados = result.data.empleados;
+                        this.populateEmpleadosFilter();
+                        this.populateRolesFilter();
+                    } else {
+                        console.error('Error en respuesta:', result.error);
+                    }
+                } catch (error) {
+                    console.error('Error cargando empleados:', error);
+                    // Mostrar mensaje de error al usuario
+                    alert('Error al cargar empleados. Verifique que el servidor esté funcionando.');
+                }
+            }
+
+            populateEmpleadosFilter() {
+                const select = document.getElementById('empleado-filtro');
+                select.innerHTML = '<option value="">Todos los empleados</option>';
+                
+                this.empleados.forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.textContent = `${emp.nombre} ${emp.apellido}`;
+                    select.appendChild(option);
+                });
+            }
+
+            populateRolesFilter() {
+                const select = document.getElementById('rol-filtro');
+                select.innerHTML = '<option value="">Todos los roles</option>';
+                
+                const roles = [...new Set(this.empleados.map(emp => emp.rol))];
+                roles.forEach(rol => {
+                    const option = document.createElement('option');
+                    option.value = rol;
+                    option.textContent = rol;
+                    select.appendChild(option);
+                });
+            }
+
+            setupEventListeners() {
+                document.getElementById('aplicar-filtros').addEventListener('click', () => this.loadFichajes());
+                document.getElementById('limpiar-filtros').addEventListener('click', () => this.clearFilters());
+                document.getElementById('exportar-csv').addEventListener('click', () => this.exportCSV());
+                document.getElementById('detectar-anomalias').addEventListener('click', () => this.detectAnomalies());
+                
+                // Establecer fecha actual por defecto
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('fecha-filtro').value = today;
+            }
+
+            setupDataTable() {
+                this.dataTable = $('#fichajes-table').DataTable({
+                    pageLength: 25,
+                    order: [[3, 'desc'], [4, 'asc']], // Ordenar por fecha descendente, hora entrada ascendente
+                    columnDefs: [
+                        { orderable: false, targets: [0, 9] }, // Checkbox y acciones no ordenables
+                        { width: '50px', targets: 0 }, // Checkbox más pequeño
+                        { width: '100px', targets: 9 } // Acciones más pequeño
+                    ],
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+                    }
+                });
+            }
+
+            async loadFichajes() {
+                try {
+                    const fecha = document.getElementById('fecha-filtro').value;
+                    const empleado = document.getElementById('empleado-filtro').value;
+                    const rol = document.getElementById('rol-filtro').value;
+                    const tipo = document.getElementById('tipo-filtro').value;
+
+                    let url = `${this.apiBase}/fichajes?size=1000`;
+                    if (fecha) url += `&fecha=${fecha}`;
+                    if (empleado) url += `&empleado_id=${empleado}`;
+
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.fichajes = result.data.fichajes;
+                        this.renderFichajes();
+                        this.updateStats();
+                    } else {
+                        console.error('Error en respuesta:', result.error);
+                        alert('Error al cargar fichajes: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error cargando fichajes:', error);
+                    alert('Error al cargar fichajes. Verifique que el servidor esté funcionando.');
+                }
+            }
+
+            renderFichajes() {
+                this.dataTable.clear();
+                
+                this.fichajes.forEach(fichaje => {
+                    const row = [
+                        `<label class="customcheckbox">
+                            <input type="checkbox" class="listCheckbox" value="${fichaje.empleado_id}" />
+                            <span class="checkmark"></span>
+                        </label>`,
+                        fichaje.empleado,
+                        fichaje.rol,
+                        fichaje.fecha || '-',
+                        fichaje.hora_entrada || '-',
+                        fichaje.hora_salida || '-',
+                        fichaje.horas_trabajadas ? `${fichaje.horas_trabajadas}h` : '-',
+                        `<span class="badge badge-${fichaje.estado === 'Completo' ? 'success' : fichaje.estado === 'Incompleto' ? 'warning' : 'danger'}">${fichaje.estado}</span>`,
+                        this.getEstadoBadge(fichaje),
+                        this.getAccionesButtons(fichaje)
+                    ];
+                    
+                    this.dataTable.row.add(row);
+                });
+                
+                this.dataTable.draw();
+            }
+
+            getEstadoBadge(fichaje) {
+                // Detectar anomalías basadas en la nueva estructura
+                let estado = 'success';
+                let texto = 'Normal';
+                
+                if (fichaje.hora_entrada) {
+                    const hora = new Date(`2000-01-01T${fichaje.hora_entrada}`);
+                    const horaLimite = new Date('2000-01-01T09:00:00');
+                    if (hora > horaLimite) {
+                        estado = 'warning';
+                        texto = 'Entrada Tardía';
+                    }
+                }
+                
+                if (fichaje.hora_salida) {
+                    const hora = new Date(`2000-01-01T${fichaje.hora_salida}`);
+                    const horaLimite = new Date('2000-01-01T17:00:00');
+                    if (hora < horaLimite) {
+                        estado = 'danger';
+                        texto = 'Salida Temprana';
+                    }
+                }
+                
+                if (fichaje.horas_trabajadas && fichaje.horas_trabajadas < 8) {
+                    estado = 'warning';
+                    texto = 'Horas Insuficientes';
+                }
+                
+                if (fichaje.estado === 'Ausente') {
+                    estado = 'danger';
+                    texto = 'Ausente';
+                }
+                
+                return `<span class="badge badge-${estado}">${texto}</span>`;
+            }
+
+            getAccionesButtons(fichaje) {
+                return `
+                    <button class="btn btn-sm btn-primary" onclick="fichajesUI.editFichaje(${fichaje.empleado_id})" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-info" onclick="fichajesUI.viewFichaje(${fichaje.empleado_id})" title="Ver">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="fichajesUI.viewHistorial(${fichaje.empleado_id})" title="Historial">
+                        <i class="fas fa-history"></i>
+                    </button>
+                `;
+            }
+
+            updateStats() {
+                const totalFichajes = this.fichajes.length;
+                const empleadosPresentes = this.fichajes.filter(f => f.estado !== 'Ausente').length;
+                const anomalias = this.fichajes.filter(f => {
+                    // Detectar anomalías basadas en la nueva estructura
+                    if (f.hora_entrada) {
+                        const hora = new Date(`2000-01-01T${f.hora_entrada}`);
+                        if (hora > new Date('2000-01-01T09:00:00')) return true;
+                    }
+                    if (f.hora_salida) {
+                        const hora = new Date(`2000-01-01T${f.hora_salida}`);
+                        if (hora < new Date('2000-01-01T17:00:00')) return true;
+                    }
+                    return f.horas_trabajadas && f.horas_trabajadas < 8;
+                }).length;
+                
+                const totalEmpleados = this.empleados.filter(e => e.estado === 'activo').length;
+                const ausentes = totalEmpleados - empleadosPresentes;
+
+                document.getElementById('total-fichajes').textContent = totalFichajes;
+                document.getElementById('empleados-presentes').textContent = empleadosPresentes;
+                document.getElementById('anomalias-detectadas').textContent = anomalias;
+                document.getElementById('empleados-ausentes').textContent = ausentes;
+            }
+
+            clearFilters() {
+                document.getElementById('fecha-filtro').value = new Date().toISOString().split('T')[0];
+                document.getElementById('empleado-filtro').value = '';
+                document.getElementById('rol-filtro').value = '';
+                document.getElementById('tipo-filtro').value = '';
+                this.loadFichajes();
+            }
+
+            async exportCSV() {
+                try {
+                    const fecha = document.getElementById('fecha-filtro').value;
+                    let url = `${this.apiBase}/fichajes/export`;
+                    if (fecha) url += `?fecha_inicio=${fecha}&fecha_fin=${fecha}`;
+
+                    const response = await fetch(url);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const blob = new Blob([result.data], { type: 'text/csv' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `fichajes_${fecha || 'todos'}.csv`;
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    }
+                } catch (error) {
+                    console.error('Error exportando CSV:', error);
+                    alert('Error al exportar el archivo CSV');
+                }
+            }
+
+            detectAnomalies() {
+                const anomalias = this.fichajes.filter(f => {
+                    // Detectar anomalías basadas en la nueva estructura
+                    if (f.hora_entrada) {
+                        const hora = new Date(`2000-01-01T${f.hora_entrada}`);
+                        if (hora > new Date('2000-01-01T09:00:00')) return true;
+                    }
+                    if (f.hora_salida) {
+                        const hora = new Date(`2000-01-01T${f.hora_salida}`);
+                        if (hora < new Date('2000-01-01T17:00:00')) return true;
+                    }
+                    return f.horas_trabajadas && f.horas_trabajadas < 8;
+                });
+
+                if (anomalias.length === 0) {
+                    alert('No se detectaron anomalías en los fichajes mostrados.');
+                } else {
+                    alert(`Se detectaron ${anomalias.length} anomalías:\n\n` +
+                          anomalias.map(f => `- ${f.empleado}: ${f.estado} - Entrada: ${f.hora_entrada || 'No registrada'} - Salida: ${f.hora_salida || 'No registrada'}`).join('\n'));
+                }
+            }
+
+            editFichaje(empleado_id) {
+                const fichaje = this.fichajes.find(f => f.empleado_id === empleado_id);
+                if (!fichaje) {
+                    alert('Fichaje no encontrado');
+                    return;
+                }
+                
+                // Crear modal de edición
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.id = 'editFichajeModal';
+                modal.innerHTML = `
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Editar Fichaje - ${fichaje.empleado}</h5>
+                                <button type="button" class="close" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="editFichajeForm">
+                                    <div class="form-group">
+                                        <label>Fecha:</label>
+                                        <input type="date" class="form-control" id="edit-fecha" value="${fichaje.fecha}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Hora de Entrada:</label>
+                                        <input type="time" class="form-control" id="edit-hora-entrada" value="${this.formatTimeForInput(fichaje.hora_entrada)}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Hora de Salida:</label>
+                                        <input type="time" class="form-control" id="edit-hora-salida" value="${this.formatTimeForInput(fichaje.hora_salida)}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Motivo del Ajuste:</label>
+                                        <textarea class="form-control" id="edit-motivo" rows="3" placeholder="Explique el motivo del ajuste..."></textarea>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-primary" onclick="fichajesUI.saveFichajeEdit(${empleado_id})">Guardar Cambios</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                $(modal).modal('show');
+                
+                // Limpiar modal cuando se cierre
+                $(modal).on('hidden.bs.modal', function() {
+                    document.body.removeChild(modal);
+                });
+            }
+            
+            formatTimeForInput(timeString) {
+                if (!timeString) return '';
+                // Asegurar formato HH:mm para input type="time"
+                const time = timeString.toString();
+                if (time.includes(':')) {
+                    const parts = time.split(':');
+                    if (parts.length >= 2) {
+                        const hours = parts[0].padStart(2, '0');
+                        const minutes = parts[1].padStart(2, '0');
+                        return `${hours}:${minutes}`;
+                    }
+                }
+                return '';
+            }
+            
+            async saveFichajeEdit(empleado_id) {
+                try {
+                    const fecha = document.getElementById('edit-fecha').value;
+                    const horaEntrada = document.getElementById('edit-hora-entrada').value;
+                    const horaSalida = document.getElementById('edit-hora-salida').value;
+                    const motivo = document.getElementById('edit-motivo').value;
+                    
+                    if (!horaEntrada && !horaSalida) {
+                        alert('Debe especificar al menos una hora (entrada o salida)');
+                        return;
+                    }
+                    
+                    const ajusteData = {
+                        hora_entrada: horaEntrada ? (horaEntrada.includes(':00') ? horaEntrada : horaEntrada + ':00') : null,
+                        hora_salida: horaSalida ? (horaSalida.includes(':00') ? horaSalida : horaSalida + ':00') : null,
+                        motivo: motivo || 'Ajuste manual'
+                    };
+                    
+                    const response = await fetch(`${this.apiBase}/fichajes/${empleado_id}/ajustar?fecha=${fecha}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(ajusteData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Fichaje actualizado exitosamente');
+                        $('#editFichajeModal').modal('hide');
+                        this.loadFichajes(); // Recargar datos
+                    } else {
+                        alert('Error al actualizar fichaje: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error guardando fichaje:', error);
+                    alert('Error al guardar los cambios');
+                }
+            }
+
+            viewFichaje(id) {
+                const fichaje = this.fichajes.find(f => f.empleado_id === id);
+                if (fichaje) {
+                    alert(`Detalles del fichaje:\n\n` +
+                          `Empleado: ${fichaje.empleado}\n` +
+                          `Fecha: ${fichaje.fecha}\n` +
+                          `Estado: ${fichaje.estado}\n` +
+                          `Entrada: ${fichaje.hora_entrada || 'No registrada'}\n` +
+                          `Salida: ${fichaje.hora_salida || 'No registrada'}\n` +
+                          `Horas trabajadas: ${fichaje.horas_trabajadas || 0}h\n` +
+                          `Ubicación: ${fichaje.ubicacion || 'No especificada'}`);
+                }
+            }
+            
+            async viewHistorial(empleado_id) {
+                try {
+                    // Obtener datos del empleado
+                    const empleado = this.empleados.find(e => e.id === empleado_id);
+                    if (!empleado) {
+                        alert('Empleado no encontrado');
+                        return;
+                    }
+                    
+                    // Crear modal de historial
+                    const modal = document.createElement('div');
+                    modal.className = 'modal fade';
+                    modal.id = 'historialModal';
+                    modal.innerHTML = `
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">📊 Historial de Fichajes - ${empleado.nombre} ${empleado.apellido}</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label>Fecha Inicio:</label>
+                                            <input type="date" id="historial-fecha-inicio" class="form-control">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label>Fecha Fin:</label>
+                                            <input type="date" id="historial-fecha-fin" class="form-control">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label>&nbsp;</label><br>
+                                            <button class="btn btn-primary" onclick="fichajesUI.loadHistorial(${empleado_id})">
+                                                <i class="fas fa-search"></i> Buscar
+                                            </button>
+                                            <button class="btn btn-success" onclick="fichajesUI.exportHistorial(${empleado_id})">
+                                                <i class="fas fa-download"></i> Exportar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle"></i> 
+                                                <strong>Rango automático:</strong> Se cargarán automáticamente todos los fichajes disponibles del empleado.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="historial-content">
+                                        <div class="text-center">
+                                            <i class="fas fa-spinner fa-spin"></i> Cargando historial...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(modal);
+                    $(modal).modal('show');
+                    
+                    // Cargar fechas disponibles y luego el historial
+                    this.loadFechasDisponibles(empleado_id);
+                    
+                    // Limpiar modal cuando se cierre
+                    $(modal).on('hidden.bs.modal', function() {
+                        document.body.removeChild(modal);
+                    });
+                } catch (error) {
+                    console.error('Error abriendo historial:', error);
+                    alert('Error al abrir el historial');
+                }
+            }
+            
+            async loadFechasDisponibles(empleado_id) {
+                try {
+                    const response = await fetch(`${this.apiBase}/fichajes/empleado/${empleado_id}/fechas-disponibles`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const { fechas } = result.data;
+                        
+                        // Establecer fechas por defecto
+                        if (fechas.primera_fecha) {
+                            document.getElementById('historial-fecha-inicio').value = fechas.primera_fecha;
+                        }
+                        if (fechas.ultima_fecha) {
+                            document.getElementById('historial-fecha-fin').value = fechas.ultima_fecha;
+                        }
+                        
+                        // Cargar historial con las fechas establecidas
+                        this.loadHistorial(empleado_id);
+                    } else {
+                        document.getElementById('historial-content').innerHTML = 
+                            `<div class="alert alert-warning">No se encontraron fichajes para este empleado</div>`;
+                    }
+                } catch (error) {
+                    console.error('Error cargando fechas disponibles:', error);
+                    document.getElementById('historial-content').innerHTML = 
+                        `<div class="alert alert-danger">Error al cargar las fechas disponibles</div>`;
+                }
+            }
+            
+            async loadHistorial(empleado_id) {
+                try {
+                    const fechaInicio = document.getElementById('historial-fecha-inicio').value;
+                    const fechaFin = document.getElementById('historial-fecha-fin').value;
+                    
+                    let url = `${this.apiBase}/fichajes/empleado/${empleado_id}/historial?size=100`;
+                    if (fechaInicio) url += `&fecha_inicio=${fechaInicio}`;
+                    if (fechaFin) url += `&fecha_fin=${fechaFin}`;
+                    
+                    const response = await fetch(url);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.renderHistorial(result.data);
+                    } else {
+                        document.getElementById('historial-content').innerHTML = 
+                            `<div class="alert alert-danger">Error: ${result.error}</div>`;
+                    }
+                } catch (error) {
+                    console.error('Error cargando historial:', error);
+                    document.getElementById('historial-content').innerHTML = 
+                        `<div class="alert alert-danger">Error al cargar el historial</div>`;
+                }
+            }
+            
+            renderHistorial(data) {
+                const { empleado, fichajes, pagination } = data;
+                
+                let html = `
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Empleado: <strong>${empleado.nombre}</strong></h6>
+                            <h6>Rol: <strong>${empleado.rol}</strong></h6>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <h6>Total registros: <strong>${pagination.total}</strong></h6>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Entrada</th>
+                                    <th>Salida</th>
+                                    <th>Horas</th>
+                                    <th>Estado</th>
+                                    <th>Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                if (fichajes.length === 0) {
+                    html += `<tr><td colspan="6" class="text-center">No hay registros para el período seleccionado</td></tr>`;
+                } else {
+                    fichajes.forEach(fichaje => {
+                        const estadoClass = fichaje.estado === 'Completo' ? 'success' : 
+                                          fichaje.estado === 'Incompleto' ? 'warning' : 'danger';
+                        
+                        html += `
+                            <tr>
+                                <td>${fichaje.fecha}</td>
+                                <td>${fichaje.hora_entrada || '-'}</td>
+                                <td>${fichaje.hora_salida || '-'}</td>
+                                <td>${fichaje.horas_trabajadas ? fichaje.horas_trabajadas.toFixed(2) + 'h' : '-'}</td>
+                                <td><span class="badge badge-${estadoClass}">${fichaje.estado}</span></td>
+                                <td>
+                                    ${fichaje.observaciones_entrada ? `<small><strong>Entrada:</strong> ${fichaje.observaciones_entrada}</small><br>` : ''}
+                                    ${fichaje.observaciones_salida ? `<small><strong>Salida:</strong> ${fichaje.observaciones_salida}</small>` : ''}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                document.getElementById('historial-content').innerHTML = html;
+            }
+            
+            async exportHistorial(empleado_id) {
+                try {
+                    const fechaInicio = document.getElementById('historial-fecha-inicio').value;
+                    const fechaFin = document.getElementById('historial-fecha-fin').value;
+                    
+                    let url = `${this.apiBase}/fichajes/empleado/${empleado_id}/historial?size=1000`;
+                    if (fechaInicio) url += `&fecha_inicio=${fechaInicio}`;
+                    if (fechaFin) url += `&fecha_fin=${fechaFin}`;
+                    
+                    const response = await fetch(url);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Crear CSV
+                        const empleado = result.data.empleado;
+                        let csv = `Historial de Fichajes - ${empleado.nombre}\n`;
+                        csv += `Fecha,Entrada,Salida,Horas Trabajadas,Estado,Observaciones\n`;
+                        
+                        result.data.fichajes.forEach(f => {
+                            csv += `${f.fecha},${f.hora_entrada || ''},${f.hora_salida || ''},${f.horas_trabajadas || ''},${f.estado},${f.observaciones_entrada || ''} ${f.observaciones_salida || ''}\n`;
+                        });
+                        
+                        // Descargar archivo
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `historial_fichajes_${empleado.nombre.replace(' ', '_')}.csv`;
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        
+                        alert('Historial exportado exitosamente');
+                    } else {
+                        alert('Error al exportar: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error exportando historial:', error);
+                    alert('Error al exportar el historial');
+                }
+            }
+        }
+
+        // Inicializar cuando el DOM esté listo
+        let fichajesUI;
+        document.addEventListener('DOMContentLoaded', function() {
+            fichajesUI = new FichajesUI();
+        });
     </script>
 
     <!-- Load unified sidebar -->

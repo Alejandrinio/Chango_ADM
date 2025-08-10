@@ -233,7 +233,7 @@ async def get_dashboard_charts(
 @app.get("/api/empleados")
 async def get_empleados(
     page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
+    size: int = Query(10, ge=1, le=1000),
     search: Optional[str] = None,
     rol: Optional[str] = None,
     departamento: Optional[str] = None,
@@ -273,6 +273,9 @@ async def get_empleados(
         count_query = text(str(query).replace("SELECT e.*, 'N/A' as departamento_nombre", "SELECT COUNT(*)"))
         total = db.execute(count_query, params).scalar()
         
+        # Asegurar que total sea un entero
+        total = int(total) if total is not None else 0
+        
         # Aplicar paginación
         offset = (page - 1) * size
         query = text(str(query) + " ORDER BY e.nombre, e.apellido LIMIT :size OFFSET :offset")
@@ -303,7 +306,7 @@ async def get_empleados(
                     "page": page,
                     "size": size,
                     "total": total,
-                    "pages": (total + size - 1) // size
+                    "pages": (total + size - 1) // size if total > 0 else 0
                 }
             }
         }
@@ -569,7 +572,7 @@ async def export_empleados_csv(
 @app.get("/api/fichajes")
 async def get_fichajes(
     page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
+    size: int = Query(10, ge=1, le=1000),
     fecha: Optional[str] = None,
     empleado_id: Optional[int] = None,
     departamento_id: Optional[int] = None,
@@ -577,14 +580,23 @@ async def get_fichajes(
 ):
     """Obtener lista de fichajes con filtros"""
     try:
-        # Construir query base usando la tabla fichajes
+        # Construir query base agrupando por empleado y fecha
         query = text("""
             SELECT 
-                f.id, f.empleado_id, f.fecha, f.hora_entrada, f.hora_salida, 
-                f.horas_trabajadas, f.tipo, f.ubicacion, f.dispositivo, f.observaciones,
-                e.nombre, e.apellido, e.rol, e.rol as departamento
-            FROM fichajes f
-            JOIN empleados e ON f.empleado_id = e.id
+                e.id as empleado_id,
+                e.nombre, 
+                e.apellido, 
+                e.rol,
+                f.fecha,
+                MAX(CASE WHEN f.tipo = 'entrada' THEN f.hora_entrada END) as hora_entrada,
+                MAX(CASE WHEN f.tipo = 'salida' THEN f.hora_salida END) as hora_salida,
+                MAX(CASE WHEN f.tipo = 'salida' THEN f.horas_trabajadas END) as horas_trabajadas,
+                f.ubicacion,
+                f.dispositivo,
+                MAX(CASE WHEN f.tipo = 'entrada' THEN f.observaciones END) as observaciones_entrada,
+                MAX(CASE WHEN f.tipo = 'salida' THEN f.observaciones END) as observaciones_salida
+            FROM empleados e
+            LEFT JOIN fichajes f ON e.id = f.empleado_id
             WHERE 1=1
         """)
         
@@ -595,20 +607,26 @@ async def get_fichajes(
             params['fecha'] = fecha
         
         if empleado_id:
-            query = text(str(query) + " AND f.empleado_id = :empleado_id")
+            query = text(str(query) + " AND e.id = :empleado_id")
             params['empleado_id'] = empleado_id
         
         if departamento_id:
             query = text(str(query) + " AND e.departamento_id = :departamento_id")
             params['departamento_id'] = departamento_id
         
+        # Agrupar por empleado y fecha
+        query = text(str(query) + " GROUP BY e.id, e.nombre, e.apellido, e.rol, f.fecha, f.ubicacion, f.dispositivo")
+        
         # Contar total
-        count_query = text(str(query).replace("SELECT f.id, f.empleado_id, f.fecha, f.hora_entrada, f.hora_salida, f.horas_trabajadas, f.tipo, f.ubicacion, f.dispositivo, f.observaciones, e.nombre, e.apellido, e.rol, e.rol as departamento", "SELECT COUNT(*)"))
+        count_query = text(str(query).replace("SELECT e.id as empleado_id, e.nombre, e.apellido, e.rol, f.fecha, MAX(CASE WHEN f.tipo = 'entrada' THEN f.hora_entrada END) as hora_entrada, MAX(CASE WHEN f.tipo = 'salida' THEN f.hora_salida END) as hora_salida, MAX(CASE WHEN f.tipo = 'salida' THEN f.horas_trabajadas END) as horas_trabajadas, f.ubicacion, f.dispositivo, MAX(CASE WHEN f.tipo = 'entrada' THEN f.observaciones END) as observaciones_entrada, MAX(CASE WHEN f.tipo = 'salida' THEN f.observaciones END) as observaciones_salida", "SELECT COUNT(DISTINCT CONCAT(e.id, '-', f.fecha))"))
         total = db.execute(count_query, params).scalar()
+        
+        # Asegurar que total sea un entero
+        total = int(total) if total is not None else 0
         
         # Aplicar paginación
         offset = (page - 1) * size
-        query = text(str(query) + " ORDER BY f.fecha DESC, f.hora_entrada DESC LIMIT :size OFFSET :offset")
+        query = text(str(query) + " ORDER BY f.fecha DESC, e.nombre, e.apellido LIMIT :size OFFSET :offset")
         params['size'] = size
         params['offset'] = offset
         
@@ -619,18 +637,19 @@ async def get_fichajes(
             "data": {
                 "fichajes": [
                     {
-                        "id": f.id,
+                        "empleado_id": f.empleado_id,
                         "empleado": f"{f.nombre} {f.apellido}",
                         "rol": f.rol,
-                        "departamento": f.departamento,
-                        "fecha": str(f.fecha),
+                        "departamento": f.rol,
+                        "fecha": str(f.fecha) if f.fecha else None,
                         "hora_entrada": str(f.hora_entrada) if f.hora_entrada else None,
                         "hora_salida": str(f.hora_salida) if f.hora_salida else None,
                         "horas_trabajadas": float(f.horas_trabajadas) if f.horas_trabajadas else 0,
-                        "tipo": f.tipo,
                         "ubicacion": f.ubicacion,
                         "dispositivo": f.dispositivo,
-                        "observaciones": f.observaciones
+                        "observaciones_entrada": f.observaciones_entrada,
+                        "observaciones_salida": f.observaciones_salida,
+                        "estado": "Completo" if f.hora_entrada and f.hora_salida else "Incompleto" if f.hora_entrada else "Ausente"
                     }
                     for f in fichajes
                 ],
@@ -638,7 +657,7 @@ async def get_fichajes(
                     "page": page,
                     "size": size,
                     "total": total,
-                    "pages": (total + size - 1) // size
+                    "pages": (total + size - 1) // size if total > 0 else 0
                 }
             }
         }
@@ -648,36 +667,98 @@ async def get_fichajes(
             "error": str(e)
         }
 
-@app.patch("/api/fichajes/{fichaje_id}")
-async def ajustar_fichaje(fichaje_id: int, ajuste_data: Dict[str, Any], db = Depends(get_db)):
-    """Ajustar fichaje manualmente"""
+@app.patch("/api/fichajes/{empleado_id}/ajustar")
+async def ajustar_fichaje(empleado_id: int, fecha: str, ajuste_data: Dict[str, Any], db = Depends(get_db)):
+    """Ajustar fichaje manualmente por empleado y fecha"""
     try:
-        # Verificar que existe
-        fichaje = db.execute(
-            text("SELECT id FROM fichajes WHERE id = :id"),
-            {"id": fichaje_id}
+        # Verificar que el empleado existe
+        empleado = db.execute(
+            text("SELECT id, nombre, apellido FROM empleados WHERE id = :id"),
+            {"id": empleado_id}
         ).fetchone()
         
-        if not fichaje:
-            raise HTTPException(status_code=404, detail="Fichaje no encontrado")
+        if not empleado:
+            raise HTTPException(status_code=404, detail="Empleado no encontrado")
         
-        # Actualizar fichaje
-        db.execute(
-            text("""
-                UPDATE fichajes 
-                SET hora_entrada = :hora_entrada, hora_salida = :hora_salida,
-                    horas_trabajadas = :horas_trabajadas, estado = :estado,
-                    motivo_ajuste = :motivo_ajuste, ajustado_por = :ajustado_por
-                WHERE id = :id
-            """),
-            {**ajuste_data, "id": fichaje_id}
-        )
+        # Obtener fichajes existentes para esa fecha
+        fichajes = db.execute(
+            text("SELECT id, tipo FROM fichajes WHERE empleado_id = :empleado_id AND fecha = :fecha"),
+            {"empleado_id": empleado_id, "fecha": fecha}
+        ).fetchall()
+        
+        # Actualizar o crear fichajes según sea necesario
+        hora_entrada = ajuste_data.get('hora_entrada')
+        hora_salida = ajuste_data.get('hora_salida')
+        motivo = ajuste_data.get('motivo', 'Ajuste manual')
+        
+        # Buscar fichaje de entrada
+        fichaje_entrada = next((f for f in fichajes if f.tipo == 'entrada'), None)
+        # Buscar fichaje de salida
+        fichaje_salida = next((f for f in fichajes if f.tipo == 'salida'), None)
+        
+        # Actualizar entrada
+        if hora_entrada:
+            if fichaje_entrada:
+                db.execute(
+                    text("""
+                        UPDATE fichajes 
+                        SET hora_entrada = :hora_entrada, observaciones = :observaciones
+                        WHERE id = :id
+                    """),
+                    {"hora_entrada": hora_entrada, "observaciones": f"Ajuste: {motivo}", "id": fichaje_entrada.id}
+                )
+            else:
+                # Crear nuevo fichaje de entrada
+                db.execute(
+                    text("""
+                        INSERT INTO fichajes (empleado_id, fecha, hora_entrada, tipo, ubicacion, observaciones)
+                        VALUES (:empleado_id, :fecha, :hora_entrada, 'entrada', 'Oficina Principal', :observaciones)
+                    """),
+                    {"empleado_id": empleado_id, "fecha": fecha, "hora_entrada": hora_entrada, "observaciones": f"Ajuste: {motivo}"}
+                )
+        
+        # Actualizar salida
+        if hora_salida:
+            if fichaje_salida:
+                # Calcular horas trabajadas
+                if hora_entrada:
+                    from datetime import datetime
+                    entrada = datetime.strptime(hora_entrada, '%H:%M:%S')
+                    salida = datetime.strptime(hora_salida, '%H:%M:%S')
+                    horas_trabajadas = (salida - entrada).total_seconds() / 3600
+                else:
+                    horas_trabajadas = 0
+                
+                db.execute(
+                    text("""
+                        UPDATE fichajes 
+                        SET hora_salida = :hora_salida, horas_trabajadas = :horas_trabajadas, observaciones = :observaciones
+                        WHERE id = :id
+                    """),
+                    {"hora_salida": hora_salida, "horas_trabajadas": horas_trabajadas, "observaciones": f"Ajuste: {motivo}", "id": fichaje_salida.id}
+                )
+            else:
+                # Crear nuevo fichaje de salida
+                horas_trabajadas = 0
+                if hora_entrada:
+                    from datetime import datetime
+                    entrada = datetime.strptime(hora_entrada, '%H:%M:%S')
+                    salida = datetime.strptime(hora_salida, '%H:%M:%S')
+                    horas_trabajadas = (salida - entrada).total_seconds() / 3600
+                
+                db.execute(
+                    text("""
+                        INSERT INTO fichajes (empleado_id, fecha, hora_salida, horas_trabajadas, tipo, ubicacion, observaciones)
+                        VALUES (:empleado_id, :fecha, :hora_salida, :horas_trabajadas, 'salida', 'Oficina Principal', :observaciones)
+                    """),
+                    {"empleado_id": empleado_id, "fecha": fecha, "hora_salida": hora_salida, "horas_trabajadas": horas_trabajadas, "observaciones": f"Ajuste: {motivo}"}
+                )
         
         db.commit()
         
         return {
             "success": True,
-            "message": "Fichaje ajustado exitosamente"
+            "message": f"Fichaje de {empleado.nombre} {empleado.apellido} ajustado exitosamente para {fecha}"
         }
     except HTTPException:
         raise
@@ -686,6 +767,168 @@ async def ajustar_fichaje(fichaje_id: int, ajuste_data: Dict[str, Any], db = Dep
         return {
             "success": False,
             "error": str(e)
+        }
+
+@app.get("/api/fichajes/empleado/{empleado_id}/fechas-disponibles")
+async def get_fechas_disponibles_empleado(empleado_id: int, db = Depends(get_db)):
+    """Obtener fechas disponibles de fichajes para un empleado específico"""
+    try:
+        # Verificar que el empleado existe
+        empleado = db.execute(
+            text("SELECT id, nombre, apellido FROM empleados WHERE id = :id"),
+            {"id": empleado_id}
+        ).fetchone()
+        
+        if not empleado:
+            raise HTTPException(status_code=404, detail="Empleado no encontrado")
+        
+        # Obtener primera y última fecha
+        fechas = db.execute(
+            text("""
+                SELECT 
+                    MIN(fecha) as primera_fecha,
+                    MAX(fecha) as ultima_fecha,
+                    COUNT(DISTINCT fecha) as total_dias
+                FROM fichajes 
+                WHERE empleado_id = :empleado_id
+            """),
+            {"empleado_id": empleado_id}
+        ).fetchone()
+        
+        return {
+            "success": True,
+            "data": {
+                "empleado": {
+                    "id": empleado.id,
+                    "nombre": f"{empleado.nombre} {empleado.apellido}"
+                },
+                "fechas": {
+                    "primera_fecha": str(fechas.primera_fecha) if fechas.primera_fecha else None,
+                    "ultima_fecha": str(fechas.ultima_fecha) if fechas.ultima_fecha else None,
+                    "total_dias": int(fechas.total_dias) if fechas.total_dias else 0
+                }
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.get("/api/fichajes/empleado/{empleado_id}/historial")
+async def get_historial_fichajes_empleado(
+    empleado_id: int,
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    size: int = Query(50, ge=1, le=1000),
+    db = Depends(get_db)
+):
+    """Obtener historial completo de fichajes de un empleado específico"""
+    try:
+        # Verificar que el empleado existe
+        empleado = db.execute(
+            text("SELECT id, nombre, apellido, rol FROM empleados WHERE id = :id"),
+            {"id": empleado_id}
+        ).fetchone()
+        
+        if not empleado:
+            raise HTTPException(status_code=404, detail="Empleado no encontrado")
+        
+        # Construir query para historial
+        query = text("""
+            SELECT 
+                f.fecha,
+                MAX(CASE WHEN f.tipo = 'entrada' THEN f.hora_entrada END) as hora_entrada,
+                MAX(CASE WHEN f.tipo = 'salida' THEN f.hora_salida END) as hora_salida,
+                MAX(CASE WHEN f.tipo = 'salida' THEN f.horas_trabajadas END) as horas_trabajadas,
+                f.ubicacion,
+                MAX(CASE WHEN f.tipo = 'entrada' THEN f.observaciones END) as observaciones_entrada,
+                MAX(CASE WHEN f.tipo = 'salida' THEN f.observaciones END) as observaciones_salida,
+                COUNT(*) as total_registros
+            FROM fichajes f
+            WHERE f.empleado_id = :empleado_id
+        """)
+        
+        params = {"empleado_id": empleado_id}
+        
+        if fecha_inicio:
+            query = text(str(query) + " AND f.fecha >= :fecha_inicio")
+            params['fecha_inicio'] = fecha_inicio
+        
+        if fecha_fin:
+            query = text(str(query) + " AND f.fecha <= :fecha_fin")
+            params['fecha_fin'] = fecha_fin
+        
+        # Agrupar por fecha
+        query = text(str(query) + " GROUP BY f.fecha, f.ubicacion ORDER BY f.fecha DESC")
+        
+        # Contar total de manera más simple
+        count_query = text("""
+            SELECT COUNT(DISTINCT fecha) 
+            FROM fichajes 
+            WHERE empleado_id = :empleado_id
+        """)
+        count_params = {"empleado_id": empleado_id}
+        
+        if fecha_inicio:
+            count_query = text(str(count_query) + " AND fecha >= :fecha_inicio")
+            count_params['fecha_inicio'] = fecha_inicio
+        
+        if fecha_fin:
+            count_query = text(str(count_query) + " AND fecha <= :fecha_fin")
+            count_params['fecha_fin'] = fecha_fin
+        
+        total_result = db.execute(count_query, count_params).scalar()
+        total = int(total_result) if total_result is not None else 0
+        
+        # Aplicar paginación
+        offset = (page - 1) * size
+        query = text(str(query) + " LIMIT :size OFFSET :offset")
+        params['size'] = size
+        params['offset'] = offset
+        
+        fichajes = db.execute(query, params).fetchall()
+        
+        return {
+            "success": True,
+            "data": {
+                "empleado": {
+                    "id": empleado.id,
+                    "nombre": f"{empleado.nombre} {empleado.apellido}",
+                    "rol": empleado.rol
+                },
+                "fichajes": [
+                    {
+                        "fecha": str(f.fecha),
+                        "hora_entrada": str(f.hora_entrada) if f.hora_entrada else None,
+                        "hora_salida": str(f.hora_salida) if f.hora_salida else None,
+                        "horas_trabajadas": float(f.horas_trabajadas) if f.horas_trabajadas else 0,
+                        "ubicacion": f.ubicacion,
+                        "observaciones_entrada": f.observaciones_entrada,
+                        "observaciones_salida": f.observaciones_salida,
+                        "total_registros": f.total_registros,
+                        "estado": "Completo" if f.hora_entrada and f.hora_salida else "Incompleto" if f.hora_entrada else "Ausente"
+                    }
+                    for f in fichajes
+                ],
+                "pagination": {
+                    "page": page,
+                    "size": size,
+                    "total": total,
+                    "pages": (total + size - 1) // size if total > 0 else 0
+                }
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error en historial fichajes empleado {empleado_id}: {e}")  # Debug
+        return {
+            "success": False,
+            "error": f"Error interno: {str(e)}"
         }
 
 @app.get("/api/fichajes/export")
@@ -754,7 +997,7 @@ async def export_fichajes_csv(
 @app.get("/api/recibos")
 async def get_recibos(
     page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
+    size: int = Query(10, ge=1, le=1000),
     periodo: Optional[str] = None,
     estado: Optional[str] = None,
     empleado_id: Optional[int] = None,
@@ -799,6 +1042,9 @@ async def get_recibos(
         count_query = text(str(query).replace("SELECT r.id, r.empleado_id, r.mes, r.año, r.sueldo_base, r.horas_extras, r.bonificaciones, r.descuentos, r.sueldo_neto, r.estado, r.fecha_generacion, r.fecha_firma_empleado, r.fecha_aprobacion_supervisor, r.observaciones, e.nombre, e.apellido, e.rol", "SELECT COUNT(*)"))
         total = db.execute(count_query, params).scalar()
         
+        # Asegurar que total sea un entero
+        total = int(total) if total is not None else 0
+        
         # Aplicar paginación
         offset = (page - 1) * size
         query = text(str(query) + " ORDER BY r.año DESC, r.mes DESC, r.fecha_generacion DESC LIMIT :size OFFSET :offset")
@@ -833,7 +1079,7 @@ async def get_recibos(
                     "page": page,
                     "size": size,
                     "total": total,
-                    "pages": (total + size - 1) // size
+                    "pages": (total + size - 1) // size if total > 0 else 0
                 }
             }
         }
