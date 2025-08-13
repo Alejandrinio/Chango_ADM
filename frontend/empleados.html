@@ -12,8 +12,12 @@
     
     <!-- Bootstrap CSS -->
     <link href="assets/libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="assets/libs/font-awesome/css/all.min.css" rel="stylesheet">
+    <!-- Font Awesome (ruta existente en dist/) -->
+    <link href="dist/css/icons/font-awesome/css/fontawesome-all.css" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Material Design Components (MDC Web) -->
+    <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
     <!-- Custom CSS -->
     <link href="dist/css/style.min.css" rel="stylesheet">
 </head>
@@ -311,6 +315,226 @@
     <!-- Custom API Script -->
     <script src="js/api.js"></script>
 
+    <style>
+        /* Floating Action Button (Material) */
+        #chatbot-fab { position: fixed; right: 24px; bottom: 24px; z-index: 1040; }
+
+        /* Chat Panel (Material Card) */
+        #chatbot-panel { 
+            position: fixed; 
+            right: 24px; 
+            bottom: 96px; 
+            width: 600px; 
+            height: 60vh;            /* Altura inicial para que el layout flex funcione */
+            max-height: none;        /* el límite lo maneja JS (hasta 2x base y viewport) */
+            z-index: 1040; 
+            display: none; 
+            border-radius: 16px;
+        }
+        #chatbot-card { 
+            border-radius: 16px; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%;
+        }
+        #chatbot-header { 
+            padding: 12px 16px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: linear-gradient(135deg, #6200ee 0%, #3700b3 100%); 
+            color: #fff;
+            cursor: move;
+            user-select: none;
+        }
+        #chatbot-title { font-weight: 600; letter-spacing: .25px; }
+        /* La lista de mensajes ocupa todo el espacio disponible
+           entre el header y el área de entrada */
+        #chatbot-messages { 
+            flex: 1 1 auto; 
+            min-height: 0; 
+            overflow-y: auto; 
+            background: #fff; 
+            padding: 8px 12px; 
+        }
+        .msg { margin: 8px 12px; padding: 10px 12px; border-radius: 12px; max-width: 80%; }
+        .msg-user { margin-left: auto; background: #E3F2FD; color: #0D47A1; }
+        .msg-bot { margin-right: auto; background: #F1F3F4; color: #202124; }
+        .mdc-text-field { width: 100%; }
+        /* Separador para redimensionar el alto del editor */
+        .chatbot-resizer {
+            flex: 0 0 auto;
+            height: 14px;                 /* mayor área de agarre */
+            width: 100%;
+            cursor: ns-resize;
+            background: linear-gradient(90deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.18) 50%, rgba(0,0,0,0.08) 100%);
+            position: relative;
+            z-index: 2;
+            border-top: 1px solid rgba(0,0,0,0.06);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .chatbot-resizer:hover { background: linear-gradient(90deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.24) 50%, rgba(0,0,0,0.12) 100%);}        
+
+        /* Área de entrada y botón siempre pegados abajo del panel */
+        .input-row { 
+            flex: 0 0 auto; 
+            display: flex; 
+            align-items: stretch; 
+            gap: 0;                 /* que se vean unidos */
+            padding: 12px; 
+            border-top: 1px solid #eee; 
+            background: #fff; 
+            width: 100%;
+            height: 70px;           /* alto por defecto del editor (+5% aprox) */
+            min-height: 56px;       /* que no pueda achicarse menos */
+        }
+
+        /* Mejorar legibilidad del placeholder y contraste del input */
+        .input-row .mdc-text-field--filled { 
+            background-color: #ffffff !important; 
+            border: 1px solid #ddd; 
+            border-right: 0;                        /* unir con botón */
+            border-top-left-radius: 12px;           /* menos redondeado */
+            border-bottom-left-radius: 12px; 
+            border-top-right-radius: 0; 
+            border-bottom-right-radius: 0; 
+            height: 100%;                            /* altura del conjunto */
+            display: flex; 
+            align-items: center; 
+            padding: 0 14px; 
+            box-sizing: border-box; 
+            flex: 1 1 auto; 
+            position: relative;                     /* para placeholder centrado vertical */
+        }
+        /* ocultar decoraciones de MDC para lograr estilo personalizado */
+        .input-row .mdc-text-field__ripple, 
+        .input-row .mdc-line-ripple { display: none !important; }
+        #chatbot-input { 
+            background-color: #ffffff; 
+            color: #111827; 
+            height: 100%;
+            padding: 10px 0; 
+            border: 0; 
+            outline: none; 
+            resize: none;           /* el ajuste se hace con el separador */
+            width: 100%;
+            line-height: 1.4;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        /* Placeholder overlay centrado verticalmente */
+        #chatbot-placeholder {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            pointer-events: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* Placeholders visibles en todos los navegadores */
+        #chatbot-input::placeholder { color: #6b7280; opacity: 1; }
+        #chatbot-input::-webkit-input-placeholder { color: #6b7280; opacity: 1; }
+        #chatbot-input:-ms-input-placeholder { color: #6b7280; opacity: 1; }
+        #chatbot-input::-ms-input-placeholder { color: #6b7280; opacity: 1; }
+
+        /* Botón del mismo alto y redondeado a la derecha */
+        #chatbot-send.mdc-button { 
+            height: 100%; 
+            padding: 0 20px; 
+            border-top-left-radius: 0; 
+            border-bottom-left-radius: 0; 
+            border-top-right-radius: 12px; 
+            border-bottom-right-radius: 12px; 
+            display: inline-flex; 
+            align-items: center; 
+            white-space: nowrap; 
+            box-shadow: none; 
+        }
+        
+        /* Estilos para redimensionamiento del chatbot */
+        .chatbot-resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, transparent 0%, transparent 50%, #007bff 50%, #007bff 100%);
+            cursor: nw-resize;
+            z-index: 1050;
+            border-radius: 0 0 16px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .chatbot-resize-handle:hover {
+            background: linear-gradient(135deg, transparent 0%, transparent 50%, #0056b3 50%, #0056b3 100%);
+            transform: scale(1.1);
+        }
+        
+        .chatbot-resize-handle:active {
+            background: linear-gradient(135deg, transparent 0%, transparent 50%, #004085 50%, #004085 100%);
+        }
+        
+        /* Estilos para el chatbot redimensionable */
+        #chatbot-panel {
+            min-width: 350px;
+            min-height: 400px;
+            resize: none;
+            transition: width 0.1s ease, height 0.1s ease;
+            position: relative;
+        }
+        
+        /* Indicador visual durante el redimensionamiento (sólo el panel, no el body) */
+        #chatbot-panel.chatbot-resizing {
+            user-select: none;
+        }
+        
+        .chatbot-resizing .chatbot-resize-handle {
+            background: linear-gradient(135deg, transparent 0%, transparent 50%, #28a745 50%, #28a745 100%);
+            transform: scale(1.2);
+        }
+    </style>
+
+    <button id="chatbot-fab" class="mdc-fab mdc-fab--extended" aria-label="Abrir chat" title="Chat" data-mdc-auto-init="MDCRipple">
+        <span class="material-icons mdc-fab__icon" aria-hidden="true">chat</span>
+        <span class="mdc-fab__label">Asistente</span>
+    </button>
+
+    <div id="chatbot-panel" class="mdc-card shadow" aria-hidden="true">
+        <div id="chatbot-card" class="mdc-card">
+            <div id="chatbot-header">
+                <div class="drag-handle" title="Arrastra para mover"></div>
+                <div id="chatbot-title">Asistente IA</div>
+                <div>
+                    <button id="chatbot-close" class="mdc-icon-button material-icons" title="Cerrar" aria-label="Cerrar" data-mdc-auto-init="MDCRipple">close</button>
+                </div>
+            </div>
+            <div id="chatbot-messages" class="mdc-list mdc-list--two-line"></div>
+            <div class="chatbot-resizer" id="chatbot-editor-resizer" title="Arrastra para agrandar o achicar el editor"></div>
+            <div class="input-row" id="chatbot-editor-row">
+                <label class="mdc-text-field mdc-text-field--filled" data-mdc-auto-init="MDCTextField" style="flex:1">
+                    <span class="mdc-text-field__ripple"></span>
+                    <div id="chatbot-placeholder">Escribe tu mensaje</div>
+                    <textarea id="chatbot-input" class="mdc-text-field__input" aria-label="Escribe tu mensaje"></textarea>
+                    <span class="mdc-line-ripple"></span>
+                </label>
+                <button id="chatbot-send" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">
+                    <span class="mdc-button__label">Enviar</span>
+                </button>
+            </div>
+            <!-- Indicador de redimensionamiento del chatbot -->
+            <div class="chatbot-resize-handle" id="chatbot-resize-handle" title="Redimensionar chatbot"></div>
+        </div>
+    </div>
+
+    <!-- Material Design Components (MDC Web) JS -->
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+
     <script>
         // Additional initialization
         $(document).ready(function() {
@@ -320,6 +544,279 @@
             // Show loading message
             $('#empleados-table-body').html('<tr><td colspan="8" class="text-center">Cargando empleados...</td></tr>');
         });
+
+        (function() {
+            const fab = document.getElementById('chatbot-fab');
+            const panel = document.getElementById('chatbot-panel');
+            const closeBtn = document.getElementById('chatbot-close');
+            const input = document.getElementById('chatbot-input');
+            const sendBtn = document.getElementById('chatbot-send');
+            const messages = document.getElementById('chatbot-messages');
+
+            // Variables para mover el chat
+            let isDragging = false;
+            let dragStartMouseX = 0;
+            let dragStartMouseY = 0;
+            let panelStartLeft = 0;
+            let panelStartTop = 0;
+            
+            // Variables para redimensionar el chatbot
+            let isResizing = false;
+            let startX, startY, startWidth, startHeight;
+            const BASE_PANEL_HEIGHT = 0.60; // 60% viewport (coincide con CSS 60vh)
+
+            // Init MDC components (tolerante a errores para no romper el chat)
+            if (window.mdc && mdc.autoInit) {
+                try { mdc.autoInit(); } catch (e) { console.warn('MDC autoInit omitido:', e); }
+            }
+
+            function appendMessage(text, who) {
+                const container = document.createElement('div');
+                container.className = `msg msg-${who}`;
+                container.textContent = text;
+                messages.appendChild(container);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            // Funciones para mover el chat desde la cabecera
+            function dragStart(e) {
+                // SOLO permitir arrastrar desde el header
+                if (e.target.closest('#chatbot-header') && !e.target.closest('button')) {
+                    isDragging = true;
+                    const rect = panel.getBoundingClientRect();
+                    // Si el panel aún se posiciona con right/bottom, cambiar a left/top para mover libremente
+                    panel.style.position = 'fixed';
+                    panel.style.left = rect.left + 'px';
+                    panel.style.top = rect.top + 'px';
+                    panel.style.right = 'auto';
+                    panel.style.bottom = 'auto';
+
+                    // feedback visual
+                    document.getElementById('chatbot-header').classList.add('dragging');
+
+                    dragStartMouseX = e.clientX;
+                    dragStartMouseY = e.clientY;
+                    panelStartLeft = rect.left;
+                    panelStartTop = rect.top;
+                }
+            }
+
+            function dragEnd() {
+                    isDragging = false;
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+                    e.preventDefault();
+                    
+                const deltaX = e.clientX - dragStartMouseX;
+                const deltaY = e.clientY - dragStartMouseY;
+
+                let newLeft = panelStartLeft + deltaX;
+                let newTop = panelStartTop + deltaY;
+
+                // Mantener dentro del viewport
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+                const pr = panel.getBoundingClientRect();
+                const width = pr.width;
+                const height = pr.height;
+                newLeft = Math.min(Math.max(0, newLeft), Math.max(0, vw - width));
+                newTop = Math.min(Math.max(0, newTop), Math.max(0, vh - height));
+
+                panel.style.left = newLeft + 'px';
+                panel.style.top = newTop + 'px';
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+            }
+            
+            // Funciones para redimensionar el chatbot
+            function startResize(e) {
+                isResizing = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = panel.offsetWidth;
+                startHeight = panel.offsetHeight;
+
+                // Asegurar posicionamiento por left/top para no saltar durante resize
+                const rect = panel.getBoundingClientRect();
+                panel.style.position = 'fixed';
+                panel.style.left = rect.left + 'px';
+                panel.style.top = rect.top + 'px';
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+
+                panel.classList.add('chatbot-resizing');
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            function resize(e) {
+                if (!isResizing) return;
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+
+                // límite de altura: hasta el doble del alto base (2 * 60vh = 120vh, pero limitado al viewport)
+                const maxHeightAllowed = Math.min(vh, Math.round(vh * BASE_PANEL_HEIGHT * 2));
+                const minHeightAllowed = Math.max(400, Math.round(vh * 0.35));
+
+                const newWidth = Math.max(350, startWidth + deltaX);
+                let newHeight = Math.max(minHeightAllowed, startHeight + deltaY);
+                newHeight = Math.min(newHeight, maxHeightAllowed);
+                
+                panel.style.width = newWidth + 'px';
+                panel.style.height = newHeight + 'px';
+
+                // No cambiar el tamaño del editor (input + botón) al redimensionar el panel completo
+            }
+            
+            function stopResize() {
+                isResizing = false;
+                panel.classList.remove('chatbot-resizing');
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+            }
+
+            // Event listeners para mover - SOLO en el header
+            const header = document.getElementById('chatbot-header');
+            header.addEventListener('mousedown', dragStart);
+            window.addEventListener('mousemove', drag);
+            window.addEventListener('mouseup', dragEnd);
+            
+            // Event listener para redimensionar el chatbot
+            const resizeHandle = document.getElementById('chatbot-resize-handle');
+            if (resizeHandle) {
+                resizeHandle.addEventListener('mousedown', startResize);
+            }
+
+            // Redimensionar editor (input + botón) con separador
+            (function initEditorResizer(){
+                const resizer = document.getElementById('chatbot-editor-resizer');
+                const editorRow = document.getElementById('chatbot-editor-row');
+                if (!resizer || !editorRow) return;
+
+                let resizingEditor = false;
+                let startEY = 0;
+                let startEditorHeight = 0;
+
+                resizer.addEventListener('mousedown', (e) => {
+                    resizingEditor = true;
+                    startEY = e.clientY;
+                    startEditorHeight = editorRow.offsetHeight; // base 56px
+                    document.addEventListener('mousemove', onResizeEditor);
+                    document.addEventListener('mouseup', stopResizeEditor);
+                    e.preventDefault();
+                });
+
+                function onResizeEditor(e){
+                    if (!resizingEditor) return;
+                    const delta = e.clientY - startEY;
+                    // permitir hasta el doble del alto original (56px -> 112px)
+                    const minH = 56; // mínimo igual al tamaño mostrado
+                    const maxH = 112; // 2x
+                    // Invertir dirección: mover el separador hacia ARRIBA aumenta el editor
+                    let newH = Math.max(minH, Math.min(maxH, startEditorHeight - delta));
+                    editorRow.style.height = newH + 'px';
+
+                    // Si el editor >= 70% del máximo, permitir saltos de línea (textarea multiline)
+                    const max = 112; // debe coincidir con el tope definido
+                    const allowMultiline = newH >= (maxH * 0.7);
+                    const inputEl = document.getElementById('chatbot-input');
+                    const ph = document.getElementById('chatbot-placeholder');
+                    if (inputEl){
+                        inputEl.setAttribute('rows', allowMultiline ? '3' : '1');
+                        inputEl.style.whiteSpace = allowMultiline ? 'pre-wrap' : 'nowrap';
+                        inputEl.style.overflowY = allowMultiline ? 'auto' : 'hidden';
+                        // Mostrar placeholder overlay solo si no hay texto
+                        if (ph) ph.style.display = inputEl.value ? 'none' : 'block';
+                    }
+
+                    // Mantener el input y botón al 100% de la fila
+                    const inputField = editorRow.querySelector('.mdc-text-field--filled');
+                    const sendBtn = document.getElementById('chatbot-send');
+                    if (inputField && sendBtn){
+                        inputField.style.height = '100%';
+                        sendBtn.style.height = '100%';
+                        // ajustar padding del botón para que se vea proporcionado
+                        sendBtn.style.padding = (newH > 56 ? '0 24px' : '0 20px');
+                    }
+                }
+
+                function stopResizeEditor(){
+                    resizingEditor = false;
+                    document.removeEventListener('mousemove', onResizeEditor);
+                    document.removeEventListener('mouseup', stopResizeEditor);
+                }
+            })();
+
+            // Ocultar/mostrar placeholder overlay según input
+            (function initPlaceholderSync(){
+                const inputEl = document.getElementById('chatbot-input');
+                const ph = document.getElementById('chatbot-placeholder');
+                if (!inputEl || !ph) return;
+                const sync = () => {
+                    const isFocused = document.activeElement === inputEl;
+                    ph.style.display = (isFocused || inputEl.value) ? 'none' : 'block';
+                };
+                inputEl.addEventListener('input', sync);
+                inputEl.addEventListener('focus', sync);
+                inputEl.addEventListener('mousedown', () => { ph.style.display = 'none'; });
+                inputEl.addEventListener('blur', sync);
+                sync();
+            })();
+            
+
+
+            // Asegurar que existan los nodos antes de registrar listeners
+            if (fab && panel) fab.addEventListener('click', () => {
+                // Toggle simple y robusto
+                const isVisible = panel.style.display === 'block';
+                if (isVisible) {
+                    panel.style.display = 'none';
+                    return;
+                }
+
+                // Mostrar anclado abajo-derecha por defecto (conserva medidas actuales)
+                panel.style.display = 'block';
+                panel.style.position = 'fixed';
+                panel.style.right = '24px';
+                panel.style.left = 'auto';
+                panel.style.top = 'auto';
+                panel.style.bottom = '96px';
+
+                input.focus();
+
+                if (!panel.__welcomed) {
+                    appendMessage('¡Hola! Soy tu asistente IA. ¿En qué puedo ayudarte?', 'bot');
+                    panel.__welcomed = true;
+                }
+            });
+            closeBtn.addEventListener('click', () => { panel.style.display = 'none'; });
+            sendBtn.addEventListener('click', sendMessage);
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+            async function sendMessage() {
+                const text = (input.value || '').trim();
+                if (!text) return;
+                appendMessage(text, 'user');
+                input.value = '';
+                try {
+                    const resp = await chatApi.sendMessage(text);
+                    const botText = (resp && (resp.response || resp.reply || resp.message || resp.text)) || 'Sin respuesta';
+                    appendMessage(botText, 'bot');
+                } catch (err) {
+                    appendMessage('Error conectando al chatbot', 'bot');
+                    console.error(err);
+                }
+            }
+        })();
     </script>
 </body>
 

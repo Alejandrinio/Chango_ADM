@@ -1,6 +1,6 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:8001'; // data-api
-const CHAT_API_BASE_URL = 'http://localhost:8002'; // chatbot-api
+const API_BASE_URL = 'http://lvh.me:8001'; // data-api (Docker)
+const CHAT_API_BASE_URL = 'http://lvh.me:8002'; // chatbot-api (Docker)
 
 // API Service Class
 class ApiService {
@@ -59,10 +59,18 @@ class ApiService {
 class ChatService {
     constructor() {
         this.baseUrl = CHAT_API_BASE_URL;
+        try {
+            const saved = localStorage.getItem('chatSessionId');
+            this.sessionId = saved || `web_${Date.now()}`;
+            if (!saved) localStorage.setItem('chatSessionId', this.sessionId);
+        } catch (e) {
+            this.sessionId = `web_${Date.now()}`;
+        }
     }
 
     async sendMessage(message, sessionId = null, context = null) {
-        const body = JSON.stringify({ message, session_id: sessionId, context });
+        const effectiveSession = sessionId || this.sessionId;
+        const body = JSON.stringify({ message, session_id: effectiveSession, context });
         const resp = await fetch(`${this.baseUrl}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -97,11 +105,11 @@ class EmpleadosUI {
     async loadEmpleadosTable() {
         try {
             const result = await this.api.getEmpleados(this.currentPage, this.currentLimit, this.currentSearch);
-            // Backend retorna lista directamente; adaptar según forma
-            const empleados = Array.isArray(result) ? result : (result.data || result.empleados || []);
+            // Backend retorna lista o { empleados: [...] }
+            const empleados = Array.isArray(result) ? result : (result.empleados || result.data || []);
             this.renderEmpleadosTable(empleados);
-            // Render paginación básica sin total si no está disponible
-            const total = result.total || empleados.length || (this.currentPage * this.currentLimit);
+            // Render paginación básica
+            const total = (result.pagination && result.pagination.total) || result.total || empleados.length || (this.currentPage * this.currentLimit);
             const pages = Math.ceil(total / this.currentLimit) || this.currentPage;
             this.renderPagination({ page: this.currentPage, pages, limit: this.currentLimit, total });
         } catch (error) {
