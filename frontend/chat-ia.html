@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chango - Chat IA</title>
+  <link href="assets/libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="dist/css/style.min.css" rel="stylesheet">
+  <style>
+    .chat-container { max-width: 900px; margin: 40px auto; }
+    .chat-log { height: 50vh; overflow-y: auto; border: 1px solid #e9ecef; padding: 15px; border-radius: 8px; background:#fff;}
+    .msg-user { text-align: right; }
+    .msg-ai { text-align: left; }
+    .msg { margin: 8px 0; padding: 8px 12px; border-radius: 16px; display: inline-block; }
+    .msg-user .msg { background: #e1f5fe; }
+    .msg-ai .msg { background: #f1f3f5; }
+  </style>
+</head>
+<body>
+  <div id="main-wrapper">
+    <header class="topbar" data-navbarbg="skin5">
+      <nav class="navbar top-navbar navbar-expand-md navbar-dark">
+        <div class="navbar-header" data-logobg="skin5">
+          <a class="navbar-brand" href="index.html"> <b class="logo-icon">Chango</b> </a>
+        </div>
+      </nav>
+    </header>
+    <aside class="left-sidebar" data-sidebarbg="skin5">
+      <div class="scroll-sidebar">
+        <nav class="sidebar-nav">
+          <ul id="sidebarnav" class="p-t-30">
+            <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="index.html"><i class="mdi mdi-view-dashboard"></i><span class="hide-menu">Dashboard</span></a></li>
+            <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="empleados.html"><i class="mdi mdi-account-multiple"></i><span class="hide-menu">Empleados</span></a></li>
+            <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="chat-ia.html"><i class="mdi mdi-message-text"></i><span class="hide-menu">Chat IA</span></a></li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+    <div class="page-wrapper">
+      <div class="container-fluid">
+        <div class="chat-container">
+          <h3>Chat IA</h3>
+          <div id="chat-log" class="chat-log"></div>
+          <div class="input-group mt-3">
+            <input id="chat-input" type="text" class="form-control" placeholder="Escribe tu mensaje...">
+            <button id="send-btn" class="btn btn-primary">Enviar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/libs/jquery/dist/jquery.min.js"></script>
+  <script src="assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    const logEl = document.getElementById('chat-log');
+    const inputEl = document.getElementById('chat-input');
+    const btnEl = document.getElementById('send-btn');
+
+    function appendMsg(author, text) {
+      const row = document.createElement('div');
+      row.className = author === 'user' ? 'msg-user' : 'msg-ai';
+      const bubble = document.createElement('div');
+      bubble.className = 'msg';
+      bubble.textContent = text;
+      row.appendChild(bubble);
+      logEl.appendChild(row);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+      appendMsg('user', text);
+      inputEl.value = '';
+      try {
+        const res = await chatApi.sendMessage(text);
+        appendMsg('ai', res.response || '[sin respuesta]');
+      } catch (e) {
+        appendMsg('ai', 'Error: ' + (e.message || 'No disponible'));
+      }
+    }
+
+    btnEl.addEventListener('click', sendMessage);
+    inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+  </script>
+</body>
+</html>
